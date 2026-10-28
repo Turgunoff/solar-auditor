@@ -15,6 +15,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-}
     # Host 80 is taken by the main site nginx; backend :8000 by another app.
     ports:
       - "8080:80"
