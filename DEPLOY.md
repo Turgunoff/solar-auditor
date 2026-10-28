@@ -1,7 +1,7 @@
 # Deploy — VPS + Docker Compose + GitHub Actions
 
-One repo is enough: `ci.yml` tests, `deploy.yml` ships both services.
-No separate repo needed.
+One repo is enough: `ci.yml` tests on every push. Deploy is manual
+(`git pull` on the server) — no auto-deploy by decision.
 
 ## Server prep (once)
 
@@ -49,15 +49,12 @@ After DNS points at the server IP:
 sudo certbot --nginx -d cyberpitch.uz -d www.cyberpitch.uz
 ```
 
-## GitHub secrets (repo → Settings → Secrets → Actions)
+## Manual update (git pull workflow)
 
-| Secret     | Value                          |
-|------------|--------------------------------|
-| `SSH_HOST` | server IP / hostname           |
-| `SSH_USER` | deploy ssh user                |
-| `SSH_KEY`  | private key for that user      |
-| `SSH_PORT` | optional, default 22           |
+```bash
+cd /opt/solar-auditor
+git pull origin main
+docker compose up -d --build
+```
 
-On every push to `main`: backend tests + frontend build/test must pass,
-then the server pulls, rebuilds, and restarts. Uploads/renders/exports
-survive redeploys via the `./backend/static` volume.
+Uploads/renders/exports survive redeploys via the `./backend/static` volume.
