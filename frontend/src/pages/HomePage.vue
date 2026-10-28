@@ -124,7 +124,7 @@ onUnmounted(() => {
 
     <section class="shot">
       <div class="shot-media rv rv-left">
-        <img src="/feature-pitch.jpg?v=3" alt="Pitched campus roofs with panels on sunlit slopes" />
+        <img src="/feature-pitch.jpg?v=4" alt="Pitched campus roofs with panels on sunlit slopes" />
       </div>
       <div class="shot-copy rv rv-right">
         <h2>Respect the roof geometry</h2>
@@ -137,7 +137,7 @@ onUnmounted(() => {
 
     <section class="shot reverse">
       <div class="shot-media rv rv-right">
-        <img src="/feature-commercial.jpg?v=3" alt="Commercial flat roof packed with solar modules" />
+        <img src="/feature-commercial.jpg?v=4" alt="Commercial flat roof packed with solar modules" />
       </div>
       <div class="shot-copy rv rv-left">
         <h2>Layout and money math together</h2>
@@ -150,7 +150,7 @@ onUnmounted(() => {
 
     <section class="shot">
       <div class="shot-media rv rv-left">
-        <img src="/feature-report.jpg?v=3" alt="Installer reviewing a solar feasibility report" />
+        <img src="/feature-report.jpg?v=4" alt="Installer reviewing a solar feasibility report" />
       </div>
       <div class="shot-copy rv rv-right">
         <h2>A PDF you can walk into a meeting with</h2>
