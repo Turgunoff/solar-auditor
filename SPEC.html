@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TZ — AI Rooftop Solar Auditor & Engineering Engine</title>
+  <style>
+    :root {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --ink: #1a1f1c;
+      --muted: #5c675f;
+      --line: #d9ddd8;
+      --accent: #0d7a5f;
+      --accent-soft: #e6f4ef;
+      --warn: #9a5b00;
+      --warn-soft: #fff4e5;
+      --danger: #a11d2e;
+      --code-bg: #111814;
+      --code-ink: #d7e6dc;
+      --roof: #0d7a5f;
+      --obstacle: #c23b3b;
+      --panel: #1d6fb8;
+      --max: 920px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #e8f3ee 0%, transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, #efe9dc 0%, transparent 50%),
+        var(--bg);
+      line-height: 1.65;
+    }
+
+    .wrap {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 5rem;
+    }
+
+    header.doc-hero {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 2rem 1.75rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 10px 30px rgba(26, 31, 28, 0.04);
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      padding: 0.3rem 0.65rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--muted);
+    }
+
+    .badge.ok {
+      background: var(--accent-soft);
+      border-color: #b7ddd0;
+      color: var(--accent);
+    }
+
+    .badge.warn {
+      background: var(--warn-soft);
+      border-color: #efd2a3;
+      color: var(--warn);
+    }
+
+    h1 {
+      margin: 0 0 0.6rem;
+      font-size: clamp(1.6rem, 3vw, 2.15rem);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 62ch;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .meta-card {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+    }
+
+    .meta-card span {
+      display: block;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .meta-card strong {
+      font-size: 0.95rem;
+    }
+
+    nav.toc {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1.1rem 1.25rem;
+      margin-bottom: 1.75rem;
+      position: sticky;
+      top: 0.75rem;
+      z-index: 10;
+      backdrop-filter: blur(8px);
+    }
+
+    nav.toc h2 {
+      margin: 0 0 0.65rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    nav.toc ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      columns: 2;
+      gap: 1.5rem;
+    }
+
+    nav.toc a {
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 0.92rem;
+    }
+
+    nav.toc a:hover { color: var(--accent); }
+
+    @media (max-width: 720px) {
+      nav.toc ol { columns: 1; }
+      nav.toc { position: static; }
+    }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1.5rem 1.4rem 1.6rem;
+      margin-bottom: 1.1rem;
+    }
+
+    section h2 {
+      margin: 0 0 0.85rem;
+      font-size: 1.25rem;
+      letter-spacing: -0.01em;
+      padding-bottom: 0.55rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    section h3 {
+      margin: 1.35rem 0 0.55rem;
+      font-size: 1.05rem;
+    }
+
+    section h4 {
+      margin: 1rem 0 0.4rem;
+      font-size: 0.95rem;
+      color: var(--accent);
+    }
+
+    p { margin: 0.55rem 0; }
+    ul, ol { margin: 0.45rem 0 0.7rem; padding-left: 1.25rem; }
+    li { margin: 0.28rem 0; }
+    li ul { margin-top: 0.25rem; }
+
+    .callout {
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      margin: 1rem 0;
+      border: 1px solid var(--line);
+      background: var(--bg);
+    }
+
+    .callout.ok {
+      background: var(--accent-soft);
+      border-color: #b7ddd0;
+    }
+
+    .callout.warn {
+      background: var(--warn-soft);
+      border-color: #efd2a3;
+    }
+
+    .callout strong.label {
+      display: block;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.25rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      margin: 0.75rem 0 0.25rem;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 0.55rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--bg);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    code, kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.86em;
+      background: #eef1ee;
+      padding: 0.1em 0.35em;
+      border-radius: 5px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-ink);
+      border-radius: 12px;
+      padding: 1rem 1.05rem;
+      overflow-x: auto;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      margin: 0.75rem 0;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    .pipeline {
+      display: grid;
+      gap: 0.55rem;
+      margin: 1rem 0;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.85rem;
+      align-items: start;
+      padding: 0.85rem 1rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--bg);
+    }
+
+    .step .n {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--accent);
+      color: white;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .step h4 { margin: 0 0 0.25rem; color: var(--ink); }
+    .step p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+    .swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin: 0.75rem 0;
+    }
+
+    .swatch {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.85rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .dot {
+      width: 0.85rem;
+      height: 0.85rem;
+      border-radius: 4px;
+    }
+
+    .dot.roof { background: color-mix(in srgb, var(--roof) 55%, transparent); border: 2px solid var(--roof); }
+    .dot.obstacle { background: color-mix(in srgb, var(--obstacle) 45%, transparent); border: 2px solid var(--obstacle); }
+    .dot.panel { background: color-mix(in srgb, var(--panel) 55%, transparent); border: 2px solid var(--panel); }
+
+    .checklist li::marker { content: "☐ "; }
+
+    footer {
+      margin-top: 1.5rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .print-hint {
+      display: none;
+    }
+
+    @media print {
+      body { background: white; }
+      nav.toc { position: static; }
+      section, header.doc-hero { box-shadow: none; break-inside: avoid; }
+      .print-hint { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc-hero">
+      <div class="badge-row">
+        <span class="badge ok">Meta Global AI Developer Hackathon</span>
+        <span class="badge">Indie track · Build for Your World</span>
+        <span class="badge warn">SPEC v1.0 · 2026-10-26</span>
+      </div>
+      <h1>Technical Specification (TZ)<br />AI Rooftop Solar Auditor &amp; Engineering Engine</h1>
+      <p class="lead">
+        Local-first prototip: aerofoto/sun’iy yo‘ldosh tasviridan tom chegarasini aniqlash,
+        to‘siqlarni segmentatsiya qilish, PV panellarini joylashtirish, energetika/ROI hisoblash
+        va Meta modellari (SAM 3.1, Muse Image/Spark/Wonder) bilan muhandislik hisobotini chiqarish.
+      </p>
+      <div class="meta-grid">
+        <div class="meta-card"><span>Loyiha</span><strong>solar-auditor</strong></div>
+        <div class="meta-card"><span>Trek</span><strong>Indie developer</strong></div>
+        <div class="meta-card"><span>Theme</span><strong>Build for Your World</strong></div>
+        <div class="meta-card"><span>Deadline</span><strong>4 Nov 2026, 21:00 ET</strong></div>
+      </div>
+    </header>
+
+    <nav class="toc" aria-label="Mundarija">
+      <h2>Mundarija</h2>
+      <ol>
+        <li><a href="#s1">Maqsad va strategiya</a></li>
+        <li><a href="#s2">Texnologiyalar</a></li>
+        <li><a href="#s3">Repo arxitekturasi</a></li>
+        <li><a href="#s4">End-to-end pipeline</a></li>
+        <li><a href="#s5">Meta AI integratsiya</a></li>
+        <li><a href="#s6">Layout &amp; analytics</a></li>
+        <li><a href="#s7">API shartnomasi</a></li>
+        <li><a href="#s8">Frontend UI/UX</a></li>
+        <li><a href="#s9">PDF export</a></li>
+        <li><a href="#s10">NFR &amp; xavfsizlik</a></li>
+        <li><a href="#s11">Acceptance criteria</a></li>
+        <li><a href="#s12">Milestone rejasi</a></li>
+        <li><a href="#s13">Hakaton submission</a></li>
+        <li><a href="#s14">Agent execution</a></li>
+      </ol>
+    </nav>
+
+    <!-- 1 -->
+    <section id="s1">
+      <h2>1. Project Overview &amp; Objective</h2>
+      <p>
+        Qurilishi kerak bo‘lgan mahsulot — <strong>AI Rooftop Solar Auditor &amp; Engineering Engine</strong>:
+        foydalanuvchi aerofoto yuklaydi yoki preset tanlaydi; tizim tom yuzalarini va to‘siqlarni
+        (mo‘ri, lyuk, HVAC) ajratadi; standart PV panellarini algoritmik joylashtiradi; kWp / kWh / ROI
+        hisoblaydi; photoreal “after” render va PDF muhandislik hisobotini beradi.
+      </p>
+
+      <div class="callout ok">
+        <strong class="label">Hakaton strategiyasi (muhim)</strong>
+        Demo asosida <strong>haqiqiy Meta Model API</strong> bo‘lishi shart (SAM 3.1 + kamida bitta Muse model).
+        Mock/Adapter faqat offline fallback va CI uchun. Default konfiguratsiya: API key bo‘lsa live,
+        bo‘lmasa mock — UI va business logic o‘zgarmaydi.
+      </div>
+
+      <h3>1.1 Success definition (MVP)</h3>
+      <ul>
+        <li>3 ta preset + custom upload ishlaydi.</li>
+        <li>Canvasda: tom (yashil), to‘siq (qizil), panel grid (ko‘k) ko‘rinadi.</li>
+        <li>Analytics: capacity, annual gen, cost, savings, ROI hisoblanadi.</li>
+        <li>PDF yuklab olinadi; Muse Image (yoki mock) render URL qaytadi.</li>
+        <li><code>USE_MOCK</code> / API key orqali live/mock almashtirish bitta config bilan.</li>
+      </ul>
+
+      <h3>1.2 Non-goals (MVP dan tashqari)</h3>
+      <ul>
+        <li>GIS georeferensiya / haqiqiy GPS orthophoto pipeline.</li>
+        <li>To‘liq 3D BIM / CAD export.</li>
+        <li>Multi-user auth, billing, production cloud deploy.</li>
+        <li>Real-time shading simulation (kelajak feature sifatida qayd etiladi).</li>
+      </ul>
+    </section>
+
+    <!-- 2 -->
+    <section id="s2">
+      <h2>2. Technology Stack</h2>
+      <table>
+        <thead>
+          <tr><th>Qatlam</th><th>Tanlov</th><th>Izoh</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Backend</td>
+            <td>Python 3.11+, FastAPI, Uvicorn, Pydantic v2</td>
+            <td>REST API, validation, CORS</td>
+          </tr>
+          <tr>
+            <td>Geometry</td>
+            <td>Shapely, NumPy</td>
+            <td>Usable area, panel packing, setback</td>
+          </tr>
+          <tr>
+            <td>Images / PDF</td>
+            <td>Pillow, ReportLab</td>
+            <td>Upload, overlay bake, PDF report</td>
+          </tr>
+          <tr>
+            <td>AI adapters</td>
+            <td>Meta Model API: SAM 3.1, Muse Image, Muse Spark/Wonder</td>
+            <td>Mock fallback majburiy</td>
+          </tr>
+          <tr>
+            <td>Frontend</td>
+            <td><strong>Vue 3</strong> (Composition API) + Vite + Tailwind</td>
+            <td>React o‘rniga Vue — TZ da bir tanlov; o‘zgartirmaslik</td>
+          </tr>
+          <tr>
+            <td>Canvas</td>
+            <td>HTML5 Canvas (asosiy) yoki Konva.js</td>
+            <td>Zoom/pan, polygon + panel overlay</td>
+          </tr>
+          <tr>
+            <td>State / storage</td>
+            <td>In-memory dict + diskdagi <code>static/</code></td>
+            <td>SQLite ixtiyoriy; MVP uchun memory yetarli</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 3 -->
+    <section id="s3">
+      <h2>3. Repository Architecture</h2>
+      <pre><code>solar-auditor/
+├── SPEC.html                    # Ushbu texnik topshiriq
+├── README.md
+├── .env.example
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── endpoints.py     # /health, /presets, /process, /export-pdf
+│   │   │   └── schemas.py       # Pydantic response/request models
+│   │   ├── core/
+│   │   │   └── config.py        # Settings: USE_MOCK, META_API_KEY, BASE_URL
+│   │   ├── services/
+│   │   │   ├── segmentation.py  # SAM 3.1 adapter + MockSegmentor
+│   │   │   ├── layout_engine.py # Shapely panel packing
+│   │   │   ├── analytics.py     # kWp, kWh, cost, ROI
+│   │   │   ├── render_engine.py # Muse Image adapter + MockRender
+│   │   │   ├── agent_report.py  # Muse Spark/Wonder engineering summary
+│   │   │   └── pdf_export.py    # ReportLab PDF builder
+│   │   ├── store.py             # In-memory project store
+│   │   └── main.py
+│   ├── sample_data/
+│   │   ├── residential_gable.jpg
+│   │   ├── complex_hip.jpg
+│   │   └── commercial_flat_hvac.jpg
+│   ├── static/
+│   │   ├── uploads/
+│   │   ├── renders/
+│   │   └── exports/
+│   └── requirements.txt
+└── frontend/
+    ├── src/
+    │   ├── components/
+    │   │   ├── Header.vue
+    │   │   ├── ImageCanvas.vue
+    │   │   ├── Presets.vue
+    │   │   ├── AnalyticsPanel.vue
+    │   │   └── RenderModal.vue
+    │   ├── services/api.js
+    │   ├── App.vue
+    │   └── main.js
+    ├── index.html
+    ├── package.json
+    ├── tailwind.config.js
+    └── vite.config.js</code></pre>
+    </section>
+
+    <!-- 4 -->
+    <section id="s4">
+      <h2>4. End-to-End Workflow &amp; Pipeline</h2>
+      <div class="pipeline">
+        <div class="step">
+          <div class="n">1</div>
+          <div>
+            <h4>Upload &amp; Detect</h4>
+            <p>JPG/PNG upload yoki 3 preset. Validatsiya, <code>project_id</code>, dimensions.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="n">2</div>
+          <div>
+            <h4>AI Segmentation (SAM 3.1)</h4>
+            <p>Zero-shot: roof planes + obstacles → polygon vektorlar.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="n">3</div>
+          <div>
+            <h4>Optimal Grid Layout (Shapely)</h4>
+            <p>Usable area = roof ∖ obstacles(+buffer). Panel grid + setback.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="n">4</div>
+          <div>
+            <h4>Analytics + Muse render + Agent report + PDF</h4>
+            <p>KPI hisoblash, photoreal “after”, qisqa engineering narrative, PDF.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>4.1 Step 1 — Image ingestion</h3>
+      <ul>
+        <li><strong>Preset 1:</strong> <code>residential_gable.jpg</code> — oddiy ikki tomonlama tom.</li>
+        <li><strong>Preset 2:</strong> <code>complex_hip.jpg</code> — ko‘p qirrali hip roof.</li>
+        <li><strong>Preset 3:</strong> <code>commercial_flat_hvac.jpg</code> — tekis tom + HVAC to‘siqlar.</li>
+        <li>Max file size: <strong>15 MB</strong>. Format: JPEG/PNG. MIME tekshiruvi majburiy.</li>
+      </ul>
+
+      <h3>4.2 Step 2 — Segmentation output</h3>
+      <div class="swatches">
+        <div class="swatch"><span class="dot roof"></span> Roof polygons <code>#10B981</code> @ 35% fill</div>
+        <div class="swatch"><span class="dot obstacle"></span> Obstacles <code>#EF4444</code> @ 40% fill</div>
+        <div class="swatch"><span class="dot panel"></span> Panels <code>#3B82F6</code> stroke 2px</div>
+      </div>
+      <ul>
+        <li><code>roof_polygons</code>: <code>List[List[Tuple[x,y]]]</code> — image pixel coords.</li>
+        <li><code>obstacles</code>: xuddi shu format.</li>
+        <li>Kamida 1 ta roof polygon; obstacles bo‘sh bo‘lishi mumkin.</li>
+      </ul>
+
+      <h3>4.3 Step 3 — Layout engine rules</h3>
+      <ul>
+        <li>Panel physical size: <strong>1.7 m × 1.0 m</strong>.</li>
+        <li>Pixel scale MVP: har bir preset uchun fixed <code>meters_per_pixel</code> (config yoki preset metadata). Custom upload uchun default <code>0.05 m/px</code> (sozlanadigan).</li>
+        <li>Setback / obstacle buffer: <strong>0.3 m</strong>.</li>
+        <li>Grid: axis-aligned per roof polygon (rotation = roof dominant edge angle, MVP da 0° yoki polygon long-edge).</li>
+        <li>Panel obstacle yoki tashqi chegaraga chiksa — discard.</li>
+      </ul>
+      <p>Usable area:</p>
+      <pre><code>Usable = RoofPolygon.difference(unary_union(Obstacles).buffer(setback_px))</code></pre>
+
+      <h3>4.4 Step 4 — Engineering formulas</h3>
+      <table>
+        <thead><tr><th>Metric</th><th>Formula</th><th>Default const</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Capacity (kWp)</td>
+            <td><code>N_panels × panel_kw</code></td>
+            <td>0.400 kW / panel</td>
+          </tr>
+          <tr>
+            <td>Annual generation (kWh)</td>
+            <td><code>Capacity × peak_sun_hours</code></td>
+            <td>1,450 h</td>
+          </tr>
+          <tr>
+            <td>Installed cost (USD)</td>
+            <td><code>Capacity × cost_per_kw</code></td>
+            <td>$800 / kW</td>
+          </tr>
+          <tr>
+            <td>Annual savings (USD)</td>
+            <td><code>AnnualGen × tariff</code></td>
+            <td>$0.12 / kWh</td>
+          </tr>
+          <tr>
+            <td>Payback / ROI (years)</td>
+            <td><code>Cost / AnnualSavings</code></td>
+            <td>~4.6 y (example)</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Barcha konstantalar <code>config.py</code> da markazlashtirilgan bo‘lsin.</p>
+    </section>
+
+    <!-- 5 -->
+    <section id="s5">
+      <h2>5. Meta AI Integration (Adapter Pattern)</h2>
+
+      <h3>5.1 Config</h3>
+      <pre><code># .env / config.py
+USE_MOCK=false                 # true → force mock
+META_API_KEY=...               # bo‘sh bo‘lsa auto-mock
+META_API_BASE_URL=https://...  # Meta Model API base
+SAM_MODEL=sam-3.1
+MUSE_IMAGE_MODEL=muse-image
+MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
+
+      <h3>5.2 Segmentation adapter</h3>
+      <p>Interface:</p>
+      <pre><code>class SegmentationService(Protocol):
+    def segment(self, image_path: str, width: int, height: int) -> SegmentationResult:
+        ...
+
+# SegmentationResult:
+#   roof_polygons: list[list[tuple[float, float]]]
+#   obstacles: list[list[tuple[float, float]]]
+#   provider: "meta-sam-3.1" | "mock"
+#   latency_ms: int</code></pre>
+
+      <h4>Live (SAM 3.1)</h4>
+      <ul>
+        <li>Zero-shot promptlar (yoki API talab qiladigan format):
+          <ul>
+            <li>Roof: <em>“pitched or flat roof surfaces suitable for solar panels”</em></li>
+            <li>Obstacles: <em>“chimneys, skylights, HVAC units, vents on the roof”</em></li>
+          </ul>
+        </li>
+        <li>Mask → contour (OpenCV ixtiyoriy; MVP da API polygon qaytarsa to‘g‘ridan-to‘g‘ri; aks holda mask raster + simple contour).</li>
+        <li>Timeout: 60s. Xato → controlled error + UI da aniq xabar; ixtiyoriy mock fallback faqat <code>ALLOW_MOCK_FALLBACK=true</code> bo‘lsa.</li>
+      </ul>
+
+      <h4>Mock</h4>
+      <ul>
+        <li>Image aspect ratio asosida ishonchli polygonlar (preset_id bo‘yicha farqli shablonlar).</li>
+        <li>Har bir preset uchun kamida 1–2 roof plane va 1–4 obstacle.</li>
+        <li>Provider field: <code>"mock"</code> — UI statusda ko‘rinsin.</li>
+      </ul>
+
+      <h3>5.3 Render adapter (Muse Image)</h3>
+      <pre><code>class RenderService(Protocol):
+    def render_after(
+        self,
+        image_path: str,
+        panels: list[Panel],
+        roof_polygons: list,
+    ) -> str:  # relative URL under /static/renders/
+        ...</code></pre>
+      <ul>
+        <li><strong>Live:</strong> aerial + panel layout tavsifi bilan photoreal “rooftop with installed solar panels” generatsiya.</li>
+        <li><strong>Mock:</strong> Pillow bilan panel to‘rtburchaklarini original rasm ustiga chizib JPEG saqlash (demo hech qachon bo‘sh qolmasin).</li>
+      </ul>
+
+      <h3>5.4 Agent report (Muse Spark / Wonder)</h3>
+      <ul>
+        <li>Input: panel count, capacity, obstacles count, roof area estimate, ROI.</li>
+        <li>Output: 120–180 so‘zlik engineering summary (risklar, tavsiya, next steps).</li>
+        <li>Mock: template string + interpolated numbers.</li>
+        <li>Response schema maydoni: <code>analytics.agent_summary</code>.</li>
+      </ul>
+
+      <div class="callout warn">
+        <strong class="label">Hakaton demo talabi</strong>
+        Submission video/livestreamda status barida
+        <code>Meta SAM 3.1: Live</code> va <code>Muse Image: Live</code> ko‘rinishi afzal.
+        Faqat mock bilan yuborish — yutuq ehtimolini pasaytiradi.
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section id="s6">
+      <h2>6. Layout Engine &amp; Analytics Detail</h2>
+      <h3>6.1 Panel placement algorithm (MVP)</h3>
+      <ol>
+        <li>Har bir roof polygon uchun Shapely <code>Polygon</code> yaratish.</li>
+        <li>Obstacles union + buffer.</li>
+        <li><code>usable = roof.difference(obstacles_buffered)</code>.</li>
+        <li>Usable bounding box bo‘ylab grid step = panel_w_px + gap_px (gap default 2 px).</li>
+        <li>Har bir candidate <code>box(x, y, x+w, y+h)</code> uchun:
+          <code>usable.contains(panel)</code> yoki <code>panel.within(usable)</code> — true bo‘lsa accept.</li>
+        <li>Panel record: <code>{id, x, y, width, height, rotation}</code> — x,y = top-left pixel.</li>
+      </ol>
+
+      <h3>6.2 Analytics module</h3>
+      <ul>
+        <li>Barcha floatlar 1–2 kasr aniqligida round.</li>
+        <li><code>roi_years</code>: savings ≤ 0 bo‘lsa <code>null</code> + UI da “N/A”.</li>
+        <li>Qo‘shimcha maydonlar (ixtiyoriy MVP+): <code>usable_area_m2</code>, <code>panel_density</code>.</li>
+      </ul>
+    </section>
+
+    <!-- 7 -->
+    <section id="s7">
+      <h2>7. API Schemas &amp; Data Contracts</h2>
+      <p>Base URL: <code>http://localhost:8000</code>. CORS: <code>http://localhost:5173</code> (Vite).</p>
+
+      <h3>7.1 <code>GET /api/health</code></h3>
+      <pre><code>{
+  "status": "ok",
+  "mode": "live" | "mock",
+  "models": {
+    "segmentation": "meta-sam-3.1" | "mock",
+    "render": "muse-image" | "mock",
+    "agent": "muse-spark" | "mock"
+  }
+}</code></pre>
+
+      <h3>7.2 <code>GET /api/presets</code></h3>
+      <pre><code>{
+  "presets": [
+    {
+      "id": "residential_gable",
+      "label": "Preset 1 (Gable)",
+      "thumbnail_url": "/static/uploads/residential_gable.jpg",
+      "meters_per_pixel": 0.045
+    }
+  ]
+}</code></pre>
+
+      <h3>7.3 <code>POST /api/process</code></h3>
+      <p>Ikki variant (biri majburiy):</p>
+      <ul>
+        <li><code>multipart/form-data</code>: field <code>file</code> (UploadFile)</li>
+        <li><code>application/json</code>: <code>{"preset_id": "residential_gable"}</code></li>
+      </ul>
+      <p><strong>200 OK</strong> response:</p>
+      <pre><code>{
+  "project_id": "solar_proj_98231",
+  "image_url": "/static/uploads/image_01.jpg",
+  "dimensions": { "width": 1024, "height": 768 },
+  "provider": {
+    "segmentation": "meta-sam-3.1",
+    "render": "muse-image",
+    "agent": "muse-spark"
+  },
+  "segmentation": {
+    "roof_polygons": [[[180, 120], [840, 120], [890, 620], [130, 620]]],
+    "obstacles": [
+      [[350, 240], [420, 240], [420, 310], [350, 310]],
+      [[610, 380], [660, 380], [660, 430], [610, 430]]
+    ]
+  },
+  "layout": {
+    "total_panels": 34,
+    "panel_dimensions": { "width": 38, "height": 62 },
+    "panels": [
+      { "id": 1, "x": 200, "y": 140, "width": 38, "height": 62, "rotation": 0 }
+    ]
+  },
+  "analytics": {
+    "system_capacity_kw": 13.6,
+    "annual_generation_kwh": 19720,
+    "estimated_cost_usd": 10880,
+    "annual_savings_usd": 2366.4,
+    "roi_years": 4.6,
+    "agent_summary": "This gable roof supports a 13.6 kWp array..."
+  },
+  "render_url": "/static/renders/sample_render.jpg"
+}</code></pre>
+
+      <h3>7.4 <code>GET /api/export-pdf/{project_id}</code></h3>
+      <ul>
+        <li>Response: <code>application/pdf</code> binary stream.</li>
+        <li>404 agar project topilmasa.</li>
+        <li>Filename: <code>solar-audit-{project_id}.pdf</code>.</li>
+      </ul>
+
+      <h3>7.5 Error shape</h3>
+      <pre><code>{ "detail": "Human-readable error", "code": "INVALID_IMAGE" | "SEGMENTATION_FAILED" | "NOT_FOUND" }</code></pre>
+    </section>
+
+    <!-- 8 -->
+    <section id="s8">
+      <h2>8. Frontend UI/UX Requirements</h2>
+
+      <h3>8.1 Visual direction</h3>
+      <ul>
+        <li>Dark engineering console: bg <code>#0F172A</code>, cards <code>#1E293B</code>, accent cyan <code>#06B6D4</code> / emerald <code>#10B981</code>.</li>
+        <li>Typography: Inter yoki system-ui (MVP). Status chip’lar aniq o‘qiladi.</li>
+        <li>Birinchi viewport: title + model status + controls + canvas + analytics — bitta ish oqimi.</li>
+      </ul>
+
+      <h3>8.2 Layout blocks</h3>
+      <ol>
+        <li><strong>Header:</strong> App title <em>Solar Auditor</em>, status
+          <code>Meta SAM 3.1: Live|Mock</code>, GitHub link.</li>
+        <li><strong>Control bar:</strong> 3 preset, Upload, <strong>Run AI Audit</strong>, Reset.</li>
+        <li><strong>Canvas:</strong> base image + roof/obstacle/panel layers; zoom &amp; pan.</li>
+        <li><strong>Analytics panel:</strong> kWp, kWh, ROI, cost, savings + agent summary excerpt.</li>
+        <li><strong>Actions:</strong> View Visualization (modal), Download PDF.</li>
+      </ol>
+
+      <h3>8.3 Interaction rules</h3>
+      <ul>
+        <li>Run AI Audit bosilganda loading state (skeleton yoki progress text).</li>
+        <li>Xatolik toast/banner — silent fail yo‘q.</li>
+        <li>Reset: canvas + analytics tozalash, project_id drop.</li>
+        <li>Responsive: ≥1100px two-column; mobile stacked.</li>
+      </ul>
+
+      <h3>8.4 Canvas drawing order</h3>
+      <ol>
+        <li>Image</li>
+        <li>Roof fills</li>
+        <li>Obstacle fills</li>
+        <li>Panel rectangles</li>
+        <li>(optional) panel count badge</li>
+      </ol>
+    </section>
+
+    <!-- 9 -->
+    <section id="s9">
+      <h2>9. PDF Export Contents</h2>
+      <ul>
+        <li>Title: <em>Rooftop Solar Feasibility Report</em></li>
+        <li>Timestamp + project_id</li>
+        <li>Before aerial thumbnail + after render</li>
+        <li>Metrics table (capacity, gen, cost, savings, ROI)</li>
+        <li>BOM: <code>N × 400W panels</code>, estimated racking line-item (static text OK)</li>
+        <li>Agent summary paragraph</li>
+        <li>Footer: “Generated by AI Rooftop Solar Auditor · Meta Hackathon 2026”</li>
+      </ul>
+    </section>
+
+    <!-- 10 -->
+    <section id="s10">
+      <h2>10. Non-Functional Requirements</h2>
+      <table>
+        <thead><tr><th>NFR</th><th>Talab</th></tr></thead>
+        <tbody>
+          <tr><td>Offline / local</td><td>Mock mode da internetsiz to‘liq demo</td></tr>
+          <tr><td>Latency (mock)</td><td>Process &lt; 2s</td></tr>
+          <tr><td>Latency (live)</td><td>Best-effort; UI timeout messaging 90s</td></tr>
+          <tr><td>Secrets</td><td>API key faqat env; repo ga commit qilinmasin</td></tr>
+          <tr><td>Logging</td><td>provider, latency_ms, project_id (PII yo‘q)</td></tr>
+          <tr><td>Code quality</td><td>Type hints (Python), oddiy modul chegaralari</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 11 -->
+    <section id="s11">
+      <h2>11. Acceptance Criteria (Definition of Done)</h2>
+      <ol class="checklist">
+        <li><code>uvicorn</code> + <code>npm run dev</code> README bo‘yicha ishga tushadi</li>
+        <li>3 presetning har biri panel grid + analytics qaytaradi</li>
+        <li>Custom upload ishlaydi</li>
+        <li>Canvas overlaylar to‘g‘ri chiziladi</li>
+        <li>PDF download ishlaydi</li>
+        <li><code>USE_MOCK=true</code> da 100% local</li>
+        <li>API key + <code>USE_MOCK=false</code> da segmentation/render adapter live path chaqiriladi (yoki aniq stub TODO + hujjat)</li>
+        <li>README: setup, env, demo script (60s), Meta model usage</li>
+      </ol>
+    </section>
+
+    <!-- 12 -->
+    <section id="s12">
+      <h2>12. Implementation Milestones</h2>
+      <table>
+        <thead><tr><th>#</th><th>Milestone</th><th>Natija</th></tr></thead>
+        <tbody>
+          <tr><td>M0</td><td>Scaffold</td><td>Repo, deps, health endpoint, empty Vue shell</td></tr>
+          <tr><td>M1</td><td>Mock pipeline</td><td>presets → segment mock → layout → analytics → JSON</td></tr>
+          <tr><td>M2</td><td>Frontend canvas</td><td>Full UI overlay + metrics</td></tr>
+          <tr><td>M3</td><td>PDF + render mock</td><td>Export + modal preview</td></tr>
+          <tr><td>M4</td><td>Meta adapters</td><td>Live SAM 3.1 + Muse Image/Spark wiring</td></tr>
+          <tr><td>M5</td><td>Polish &amp; submit</td><td>README, demo video script, sample data quality</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 13 -->
+    <section id="s13">
+      <h2>13. Hackathon Submission Package</h2>
+      <ul>
+        <li><strong>Track:</strong> Indie developer</li>
+        <li><strong>Theme:</strong> Build for Your World</li>
+        <li><strong>One-liner:</strong> “Upload a rooftop photo → Meta SAM segments usable area → auto panel layout + Muse photoreal after + ROI PDF in under a minute.”</li>
+        <li><strong>Models used:</strong> SAM 3.1, Muse Image, Muse Spark/Wonder</li>
+        <li><strong>Demo script (60–90s):</strong>
+          <ol>
+            <li>Preset 3 (commercial HVAC) ochish</li>
+            <li>Run AI Audit — qizil to‘siqlar + panel grid</li>
+            <li>Metrics + agent summary</li>
+            <li>View render → Download PDF</li>
+            <li>Status: Live providers</li>
+          </ol>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 14 -->
+    <section id="s14">
+      <h2>14. Execution Directives for Coding Agent</h2>
+      <ol>
+        <li>Ushbu <code>SPEC.html</code> ni manba haqiqat deb hisobla; ziddiyat bo‘lsa shu hujjat ustun.</li>
+        <li>Avval M0→M1→M2 tartibida; Meta live wiring M4 da, lekin adapter interfeyslari M1 dan mavjud bo‘lsin.</li>
+        <li>Frontend: <strong>Vue 3</strong> (React ga o‘girilmasin).</li>
+        <li>Sample images: 3 ta haqiqiy/realistic aerial roof JPG (agar real rasm bo‘lmasa — yuqori sifatli placeholder + aniq mock polygons).</li>
+        <li>Start scripts README da:
+          <pre><code># backend
+cd backend && pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+
+# frontend
+cd frontend && npm install && npm run dev</code></pre>
+        </li>
+        <li>Secretlarni commit qilma. <code>.env.example</code> yarat.</li>
+        <li>Har milestone oxirida qo‘lda tekshirish: health → process preset → canvas → pdf.</li>
+      </ol>
+
+      <div class="callout ok">
+        <strong class="label">Keyingi qadam</strong>
+        Ushbu SPEC tasdiqlangach agent M0 scaffold bilan boshlaydi:
+        backend FastAPI skeleton + Vue Vite app + mock segmentation/layout end-to-end.
+      </div>
+    </section>
+
+    <footer>
+      AI Rooftop Solar Auditor · Technical Specification v1.0 · Meta Global AI Developer Hackathon 2026
+      <div class="print-hint">Print / Save as PDF: Cmd+P</div>
+    </footer>
+  </div>
+</body>
+</html>

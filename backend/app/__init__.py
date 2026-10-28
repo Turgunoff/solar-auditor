@@ -1,0 +1,1 @@
+"""Solar Auditor backend package."""
