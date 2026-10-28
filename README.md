@@ -76,11 +76,11 @@ Switching to live Meta Model API should only require env + implementing the HTTP
 
 ## API
 
-- `GET /api/health`
-- `GET /api/presets`
-- `POST /api/process/preset` `{ "preset_id": "residential_gable" }`
-- `POST /api/process/upload` `multipart file`
-- `GET /api/export-pdf/{project_id}`
+- `GET /api/v1/health`
+- `GET /api/v1/presets`
+- `POST /api/v1/process/preset` `{ "preset_id": "residential_gable" }`
+- `POST /api/v1/process/upload` `multipart file`
+- `GET /api/v1/export-pdf/{project_id}`
 - Interactive docs: http://localhost:8000/docs
 
 ## Hackathon positioning

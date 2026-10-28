@@ -11,11 +11,11 @@ def _app(per_minute=2):
     app = FastAPI()
     app.add_middleware(RateLimitMiddleware, per_minute=per_minute)
 
-    @app.post("/api/process/upload")
+    @app.post("/api/v1/process/upload")
     def heavy():
         return PlainTextResponse("ok")
 
-    @app.get("/api/health")
+    @app.get("/api/v1/health")
     def light():
         return PlainTextResponse("ok")
 
@@ -24,15 +24,15 @@ def _app(per_minute=2):
 
 def test_limited_path_throttled():
     client = _app(per_minute=2)
-    assert client.post("/api/process/upload").status_code == 200
-    assert client.post("/api/process/upload").status_code == 200
-    r = client.post("/api/process/upload")
+    assert client.post("/api/v1/process/upload").status_code == 200
+    assert client.post("/api/v1/process/upload").status_code == 200
+    r = client.post("/api/v1/process/upload")
     assert r.status_code == 429
     assert "Rate limit" in r.json()["detail"]
 
 
 def test_unlimited_path_passes():
     client = _app(per_minute=1)
-    client.post("/api/process/upload")
+    client.post("/api/v1/process/upload")
     for _ in range(5):
-        assert client.get("/api/health").status_code == 200
+        assert client.get("/api/v1/health").status_code == 200

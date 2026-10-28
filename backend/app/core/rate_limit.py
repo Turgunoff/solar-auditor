@@ -16,7 +16,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     through untouched. State is in-memory (single-process MVP).
     """
 
-    def __init__(self, app, per_minute: int = 60, limited_prefixes=("/api/process", "/api/leads")) -> None:
+    def __init__(self, app, per_minute: int = 60, limited_prefixes=("/api/v1/process", "/api/v1/leads")) -> None:
         super().__init__(app)
         self.per_minute = max(1, per_minute)
         self.limited_prefixes = tuple(limited_prefixes)

@@ -1,4 +1,4 @@
-"""POST /api/leads stores server-side; bad email rejected."""
+"""POST /api/v1/leads stores server-side; bad email rejected."""
 
 import json
 

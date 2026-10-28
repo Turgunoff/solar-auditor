@@ -38,7 +38,7 @@ cd backend && ../.venv/bin/uvicorn app.main:app --reload --port 8000
 3. Probe:
 
 ```bash
-curl "http://127.0.0.1:8000/api/status?probe=true"
+curl "http://127.0.0.1:8000/api/v1/status?probe=true"
 ```
 
 4. Run an audit in `/app`. Provider chips should show:

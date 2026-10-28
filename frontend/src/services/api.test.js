@@ -19,7 +19,7 @@ describe('api service', () => {
     mockFetchOnce({ ok: true, json: { status: 'ok' } })
     const data = await getHealth()
     expect(data.status).toBe('ok')
-    expect(globalThis.fetch).toHaveBeenCalledWith('/api/health')
+    expect(globalThis.fetch).toHaveBeenCalledWith('/api/v1/health')
   })
 
   it('submitLead posts JSON and returns server receipt', async () => {
@@ -28,7 +28,7 @@ describe('api service', () => {
     const data = await submitLead(lead)
     expect(data.stored).toBe('server')
     const [url, opts] = globalThis.fetch.mock.calls[0]
-    expect(url).toBe('/api/leads')
+    expect(url).toBe('/api/v1/leads')
     expect(opts.method).toBe('POST')
     expect(JSON.parse(opts.body)).toMatchObject({ email: 'a@b.co' })
   })

@@ -45,7 +45,7 @@ First run:
 
 ```bash
 docker compose up -d --build
-curl http://localhost:8080/api/health
+curl http://localhost:8080/api/v1/health
 ```
 
 Note: host ports 80 (main site nginx) and 8000 (another app) are taken,
@@ -55,7 +55,7 @@ so the app serves on **8080**.
 
 Host nginx vhost `/etc/nginx/sites-{available,enabled}/cyberpitch.uz`
 proxies `cyberpitch.uz` + `www` → `127.0.0.1:8080`. Verified with
-`Host:` header override (200 + live `/api/health`).
+`Host:` header override (200 + live `/api/v1/health`).
 
 After DNS points at the server IP:
 

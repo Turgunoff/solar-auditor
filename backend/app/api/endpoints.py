@@ -36,7 +36,7 @@ from app.services.render_engine import get_render_service
 from app.services.segmentation import get_segmentation_service
 from app.store import store
 
-router = APIRouter(prefix="/api")
+router = APIRouter(prefix="/api/v1")
 
 PRESETS = [
     {

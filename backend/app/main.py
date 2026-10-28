@@ -45,5 +45,5 @@ def root() -> dict:
     return {
         "name": "AI Rooftop Solar Auditor",
         "docs": "/docs",
-        "health": "/api/health",
+        "health": "/api/v1/health",
     }

@@ -10,26 +10,26 @@ async function parseError(res) {
 }
 
 export async function getHealth() {
-  const res = await fetch(`${BASE}/api/health`)
+  const res = await fetch(`${BASE}/api/v1/health`)
   if (!res.ok) throw new Error(await parseError(res))
   return res.json()
 }
 
 export async function getStatus(probe = false) {
   const q = probe ? '?probe=true' : ''
-  const res = await fetch(`${BASE}/api/status${q}`)
+  const res = await fetch(`${BASE}/api/v1/status${q}`)
   if (!res.ok) throw new Error(await parseError(res))
   return res.json()
 }
 
 export async function getPresets() {
-  const res = await fetch(`${BASE}/api/presets`)
+  const res = await fetch(`${BASE}/api/v1/presets`)
   if (!res.ok) throw new Error(await parseError(res))
   return res.json()
 }
 
 export async function processPreset(presetId) {
-  const res = await fetch(`${BASE}/api/process/preset`, {
+  const res = await fetch(`${BASE}/api/v1/process/preset`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ preset_id: presetId }),
@@ -41,7 +41,7 @@ export async function processPreset(presetId) {
 export async function processUpload(file) {
   const form = new FormData()
   form.append('file', file)
-  const res = await fetch(`${BASE}/api/process/upload`, {
+  const res = await fetch(`${BASE}/api/v1/process/upload`, {
     method: 'POST',
     body: form,
   })
@@ -73,7 +73,7 @@ export async function processMap({ lat, lng, zoom }) {
   form.append('lng', String(lng))
   form.append('zoom', String(zoom))
 
-  const res = await fetch(`${BASE}/api/process/map-upload`, {
+  const res = await fetch(`${BASE}/api/v1/process/map-upload`, {
     method: 'POST',
     body: form,
   })
@@ -82,7 +82,7 @@ export async function processMap({ lat, lng, zoom }) {
 }
 
 export function pdfUrl(projectId) {
-  return `${BASE}/api/export-pdf/${projectId}`
+  return `${BASE}/api/v1/export-pdf/${projectId}`
 }
 
 export function assetUrl(path) {
@@ -92,7 +92,7 @@ export function assetUrl(path) {
 }
 
 export async function submitLead(lead) {
-  const res = await fetch(`${BASE}/api/leads`, {
+  const res = await fetch(`${BASE}/api/v1/leads`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(lead),
