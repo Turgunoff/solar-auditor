@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    # Operator puts a real .env (META_API_KEY, Google keys) next to compose.
+    env_file:
+      - .env
+    volumes:
+      # Persist uploads / renders / exports + leads across redeploys.
+      - ./backend/static:/srv/backend/static
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
