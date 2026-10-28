@@ -44,7 +44,9 @@ async function initMap() {
   }
   try {
     await nextTick()
-    const gmaps = await loadGoogleMaps()
+    const gmaps = await loadGoogleMaps((authErr) => {
+      error.value = authErr.message
+    })
     if (!mapEl.value) return
 
     map = new gmaps.Map(mapEl.value, {
