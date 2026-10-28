@@ -50,7 +50,7 @@ function draw() {
   canvas.style.height = `${h}px`
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   ctx.clearRect(0, 0, w, h)
-  ctx.fillStyle = '#020617'
+  ctx.fillStyle = '#e9eef2'
   ctx.fillRect(0, 0, w, h)
 
   if (!imageObj.value) {
@@ -207,11 +207,11 @@ onUnmounted(() => {
       @mousedown="onDown"
       @mousemove="onMove"
     />
-    <div class="pointer-events-none absolute bottom-3 left-3 flex gap-2 text-[11px]">
-      <span class="rounded bg-black/50 px-2 py-1 text-emerald-300">Roof</span>
-      <span class="rounded bg-black/50 px-2 py-1 text-rose-300">Obstacles</span>
-      <span class="rounded bg-black/50 px-2 py-1 text-sky-300">Panels</span>
-      <span class="rounded bg-black/50 px-2 py-1 text-slate-300">Scroll zoom · drag pan</span>
+    <div class="pointer-events-none absolute bottom-3 left-3 flex gap-2 text-[11px] font-semibold">
+      <span class="rounded bg-white/85 px-2 py-1 text-emerald-700">Roof</span>
+      <span class="rounded bg-white/85 px-2 py-1 text-rose-600">Obstacles</span>
+      <span class="rounded bg-white/85 px-2 py-1 text-sky-700">Panels</span>
+      <span class="rounded bg-white/85 px-2 py-1 text-slate-500">Scroll zoom · drag pan</span>
     </div>
   </div>
 </template>

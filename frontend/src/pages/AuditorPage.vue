@@ -162,7 +162,7 @@ onMounted(bootstrap)
 
     <div
       v-if="error"
-      class="mx-4 mb-3 rounded-lg border border-rose-700/50 bg-rose-950/40 px-3 py-2 text-sm text-rose-200 md:mx-6"
+      class="mx-4 mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 md:mx-6"
     >
       {{ error }}
     </div>
@@ -197,10 +197,10 @@ onMounted(bootstrap)
 .auditor-shell {
   min-height: 100vh;
   background:
-    radial-gradient(900px 500px at 0% 0%, rgba(6, 182, 212, 0.12), transparent 55%),
-    radial-gradient(800px 480px at 100% 0%, rgba(16, 185, 129, 0.1), transparent 50%),
-    #0f172a;
-  color: #e2e8f0;
+    radial-gradient(900px 500px at 0% 0%, rgba(6, 182, 212, 0.08), transparent 55%),
+    radial-gradient(800px 480px at 100% 0%, rgba(16, 185, 129, 0.08), transparent 50%),
+    #f1f5f4;
+  color: #0f172a;
   font-family: 'Manrope', sans-serif;
 }
 </style>

@@ -260,22 +260,22 @@ defineExpose({
     @click.self="$emit('close')"
   >
     <div class="card flex w-full max-w-4xl flex-col overflow-hidden">
-      <div class="flex items-center justify-between border-b border-slate-700/80 px-4 py-3">
+      <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3">
         <div>
-          <h2 class="font-display text-lg text-white">Pick rooftop on map</h2>
-          <p class="text-xs text-slate-400">
+          <h2 class="font-display text-lg text-slate-900">Pick rooftop on map</h2>
+          <p class="text-xs text-slate-500">
             Zoom to one building ({{ MIN_CAPTURE_ZOOM }}–21) · center the roof · then capture
           </p>
         </div>
         <button class="btn btn-ghost" type="button" @click="$emit('close')">Close</button>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2 border-b border-slate-700/60 px-4 py-2">
+      <div class="flex flex-wrap items-center gap-2 border-b border-slate-200/60 px-4 py-2">
         <input
           ref="searchEl"
           type="text"
           placeholder="Manzil qidirish…"
-          class="min-w-[180px] flex-1 rounded-lg border border-slate-600 bg-ink-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none"
+          class="min-w-[180px] flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-none"
         />
         <button
           v-if="geoSupported"
@@ -289,8 +289,8 @@ defineExpose({
         <span
           class="rounded-md px-2 py-1 text-xs font-semibold"
           :class="zoomTooFar
-            ? 'bg-amber-950/60 text-amber-200 ring-1 ring-amber-600/50'
-            : 'bg-emerald-950/50 text-emerald-300 ring-1 ring-emerald-600/40'"
+            ? 'bg-amber-100 text-amber-800 ring-1 ring-amber-300'
+            : 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300'"
         >
           Zoom {{ zoomLabel }}
           <template v-if="zoomTooFar"> · too far</template>
@@ -298,27 +298,27 @@ defineExpose({
         </span>
       </div>
 
-      <div v-if="error" class="mx-4 mt-3 rounded-lg border border-rose-700/50 bg-rose-950/40 px-3 py-2 text-sm text-rose-200">
+      <div v-if="error" class="mx-4 mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
         {{ error }}
       </div>
 
       <div
         v-if="zoomTooFar && ready"
-        class="mx-4 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-700/50 bg-amber-950/40 px-3 py-2 text-sm text-amber-100"
+        class="mx-4 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800"
       >
         <span>
           Juda uzoqdasiz — butun mahalla/tuman kadrga tushadi. Natija ishonchsiz bo‘ladi.
           Kamida zoom {{ MIN_CAPTURE_ZOOM }} qiling.
         </span>
-        <button class="btn btn-ghost shrink-0 text-amber-50" type="button" @click="zoomCloser">
+        <button class="btn btn-ghost shrink-0" type="button" @click="zoomCloser">
           Zoom closer
         </button>
       </div>
 
       <div ref="mapEl" class="h-[min(62vh,520px)] w-full bg-slate-900" />
 
-      <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-700/80 px-4 py-3">
-        <p class="text-xs text-slate-400">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 px-4 py-3">
+        <p class="text-xs text-slate-500">
           Capture faqat zoom ≥ {{ MIN_CAPTURE_ZOOM }} da ochiladi.
         </p>
         <button

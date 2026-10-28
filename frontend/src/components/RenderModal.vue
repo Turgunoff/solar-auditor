@@ -43,8 +43,8 @@ function museSrc(result) {
     <div class="card max-h-[92vh] w-full max-w-4xl overflow-auto p-4">
       <div class="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 class="text-lg font-semibold text-white">Visualization</h3>
-          <p class="text-xs text-slate-400">
+          <h3 class="text-lg font-semibold text-slate-900">Visualization</h3>
+          <p class="text-xs text-slate-500">
             Provider: {{ result.provider.render }} · Project {{ result.project_id }}
           </p>
         </div>
@@ -83,9 +83,9 @@ function museSrc(result) {
         <img
           :src="layoutSrc(result)"
           alt="Layout engine overlay"
-          class="w-full rounded-lg border border-slate-700"
+          class="w-full rounded-lg border border-slate-200"
         />
-        <p class="mt-2 text-[11px] text-slate-400">
+        <p class="mt-2 text-[11px] text-slate-500">
           Exact packed modules from the layout engine — this matches Analytics panel count.
         </p>
       </template>
@@ -93,7 +93,7 @@ function museSrc(result) {
         <img
           :src="museSrc(result)"
           alt="Muse concept render"
-          class="w-full rounded-lg border border-slate-700"
+          class="w-full rounded-lg border border-slate-200"
         />
         <p class="mt-2 text-[11px] text-amber-200/90">
           Muse Image is photoreal concept art guided by the layout overlay. It may still
