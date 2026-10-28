@@ -7,7 +7,7 @@
     <section class="hero">
       <img
         class="hero-img"
-        src="/hero-roof.jpg?v=3"
+        src="/hero-roof.jpg?v=4"
         alt="Aerial view of a residential roof with solar panels on the sunlit face"
       />
       <div class="hero-veil" aria-hidden="true" />
