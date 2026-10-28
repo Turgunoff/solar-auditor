@@ -15,8 +15,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+    # Host 80 is taken by the main site nginx; backend :8000 by another app.
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - backend
     restart: unless-stopped

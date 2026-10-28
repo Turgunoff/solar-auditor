@@ -31,8 +31,12 @@ First run:
 
 ```bash
 docker compose up -d --build
-curl http://localhost:8000/api/health
+curl http://localhost:8080/api/health
 ```
+
+Note: host ports 80 (main site nginx) and 8000 (another app) are taken,
+so the app serves on **8080**. Point a subdomain (e.g. solar.yourdomain)
+at the server and reverse-proxy it via the host nginx when ready.
 
 ## GitHub secrets (repo → Settings → Secrets → Actions)
 
