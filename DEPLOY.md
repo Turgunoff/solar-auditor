@@ -35,8 +35,19 @@ curl http://localhost:8080/api/health
 ```
 
 Note: host ports 80 (main site nginx) and 8000 (another app) are taken,
-so the app serves on **8080**. Point a subdomain (e.g. solar.yourdomain)
-at the server and reverse-proxy it via the host nginx when ready.
+so the app serves on **8080**.
+
+## Domain (cyberpitch.uz) — done on server
+
+Host nginx vhost `/etc/nginx/sites-{available,enabled}/cyberpitch.uz`
+proxies `cyberpitch.uz` + `www` → `127.0.0.1:8080`. Verified with
+`Host:` header override (200 + live `/api/health`).
+
+After DNS points at the server IP:
+
+```bash
+sudo certbot --nginx -d cyberpitch.uz -d www.cyberpitch.uz
+```
 
 ## GitHub secrets (repo → Settings → Secrets → Actions)
 
