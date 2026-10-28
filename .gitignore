@@ -19,3 +19,4 @@ backend/static/exports/*
 *.log
 .idea/
 .vscode/
+generated_images/
