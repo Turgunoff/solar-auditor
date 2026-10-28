@@ -3,6 +3,20 @@
 One repo is enough: `ci.yml` tests on every push. Deploy is manual
 (`git pull` on the server) — no auto-deploy by decision.
 
+## Server map (51.12.209.235, user `ozodbek`)
+
+| What | Where |
+|---|---|
+| Repo checkout | `/opt/solar-auditor` (branch `main`) |
+| Secrets | `/opt/solar-auditor/.env` (gitignored, on server only) |
+| Generated data | `/opt/solar-auditor/backend/static` (uploads/renders/exports, survives redeploys) |
+| systemd unit | `solar-auditor.service` → `docker compose up -d` in `/opt/solar-auditor` (enabled) |
+| Host nginx vhost | `/etc/nginx/sites-{available,enabled}/cyberpitch.uz` → `127.0.0.1:8080` |
+| Public URL | `http://51.12.209.235:8080` now; `https://cyberpitch.uz` after DNS + certbot |
+| SSH key (local) | `Downloads/iMe Desktop/ozodbek_key.pem` on the dev machine |
+
+Taken host ports (do not use): `80` (main site nginx), `8000` (quizin app).
+
 ## Server prep (once)
 
 ```bash
