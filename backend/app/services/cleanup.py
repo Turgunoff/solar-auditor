@@ -13,21 +13,26 @@ logger = logging.getLogger(__name__)
 KEEP_NAMES = {".gitkeep"}
 
 
-def cleanup_old_files(settings: Settings, max_age_days: int | None = None) -> Dict[str, int]:
+def cleanup_old_files(
+    settings: Settings,
+    max_age_days: int | None = None,
+    keep_names: set | None = None,
+) -> Dict[str, int]:
     """Delete stale generated files from uploads/renders/exports.
 
     Only regular files older than `max_age_days` are removed; directories,
-    sample data, and KEEP_NAMES are never touched. Best-effort: per-file
-    errors are logged and skipped. Returns {"removed": n, "kept": m}.
+    sample data, KEEP_NAMES and `keep_names` are never touched. Best-effort:
+    per-file errors are logged and skipped. Returns {"removed": n, "kept": m}.
     """
     limit_days = max_age_days if max_age_days is not None else settings.static_retention_days
     cutoff = time.time() - limit_days * 86400
+    protected = KEEP_NAMES | (keep_names or set())
     removed, kept = 0, 0
     for directory in (settings.uploads_dir, settings.renders_dir, settings.exports_dir):
         if not directory.is_dir():
             continue
         for path in directory.iterdir():
-            if not path.is_file() or path.name in KEEP_NAMES:
+            if not path.is_file() or path.name in protected:
                 continue
             try:
                 if path.stat().st_mtime < cutoff:

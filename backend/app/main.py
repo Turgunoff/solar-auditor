@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.api.endpoints import router
+from app.api.endpoints import PRESETS, router
 from app.core.config import get_settings
 from app.core.rate_limit import RateLimitMiddleware
 from app.services.cleanup import cleanup_old_files
@@ -33,11 +33,24 @@ app.mount("/static", StaticFiles(directory=str(settings.static_dir)), name="stat
 
 @app.on_event("startup")
 def _cleanup_stale_static() -> None:
-    stats = cleanup_old_files(settings)
+    stats = cleanup_old_files(
+        settings, keep_names={p["filename"] for p in PRESETS}
+    )
     if stats["removed"]:
         import logging
 
         logging.getLogger(__name__).info("startup cleanup removed=%d", stats["removed"])
+    # Thumbnails served from uploads/ — reseed from sample_data if missing/stale.
+    import shutil
+
+    for preset in PRESETS:
+        src = settings.sample_data_dir / preset["filename"]
+        dest = settings.uploads_dir / preset["filename"]
+        if (
+            src.exists()
+            and (not dest.exists() or dest.stat().st_mtime < src.stat().st_mtime)
+        ):
+            shutil.copy2(src, dest)
 
 
 @app.get("/")
