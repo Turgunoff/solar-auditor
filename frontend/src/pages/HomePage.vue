@@ -75,7 +75,7 @@ onUnmounted(() => {
     <section class="hero">
       <img
         class="hero-img"
-        src="/hero-roof.jpg?v=4"
+        src="/hero-roof.jpg?v=5"
         alt="Aerial view of a residential roof with solar panels on the sunlit face"
       />
       <div class="hero-veil" aria-hidden="true" />
