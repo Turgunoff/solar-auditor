@@ -41,6 +41,11 @@ uchidan-ucchegacha tasdiqlanmagan.
       masshtabida ishlamagani. Preset'lar endi `pitched` bayrog'ini olib yuradi,
       flat tomda south-cut o'tkazib yuboriladi. Jonli test: 2 → 988 panel
       (sof `meta-sam-3.1`), overlay ko'z bilan tasdiqlandi. 39/39 yashil.
+- [x] Refine oqimi + shovqin filtri (2026-10-29): 1) Analyze → zona chizish →
+      Place panels (`POST /api/v1/process/refine`, user qutilari tomga kesib
+      olinadi); 2) tomga tegmagan katta to'siqlar (parking/yo'l/maysa) endi
+      tashlanadi — faqat tomdagi yoki tomga yopishgan canopy qoladi. Jonli
+      tekshiruv: refine 48 panel qaytardi. 41/41 backend + 4/4 frontend yashil.
 - [x] Analitikaga `derate` qo'shildi (2026-10-28): `DERATE=0.85` default
       (inverter/ifloslanish/sim yo'qotishlari), `.env.example` da. Frontend formulani
       takrorlamaydi — faqat API sonlarini ko'rsatadi. Soya/qiyalik hali yo'q.
