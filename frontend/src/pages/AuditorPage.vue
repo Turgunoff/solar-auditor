@@ -14,6 +14,7 @@ import {
   processMap,
   processPreset,
   processUpload,
+  refineLayout,
 } from '../services/api'
 import { getProject, saveProject } from '../services/history'
 import { mapsConfigured } from '../services/googleMaps'
@@ -30,6 +31,8 @@ const error = ref('')
 const modalOpen = ref(false)
 const mapOpen = ref(false)
 const mapPickerRef = ref(null)
+const drawMode = ref(false)
+const userBoxes = ref([])
 
 const selectedPreset = computed(() =>
   presets.value.find((p) => p.id === selectedId.value) || null,
@@ -63,6 +66,52 @@ function onSelectPreset(id) {
   selectedId.value = id
   result.value = null
   error.value = ''
+  userBoxes.value = []
+  drawMode.value = false
+}
+
+function onAddBox(box) {
+  userBoxes.value = [...userBoxes.value, box]
+}
+
+function clearBoxes() {
+  userBoxes.value = []
+  drawMode.value = false
+}
+
+function providerFlags() {
+  const seg = result.value?.provider?.segmentation || ''
+  const tight = seg === 'mock' || seg.endsWith('+mock-fallback')
+  const preset = presets.value.find((p) => p.id === selectedId.value)
+  return { sam_overbox: !tight, pitched: preset ? preset.pitched !== false : true }
+}
+
+async function onRefine() {
+  if (!result.value || !userBoxes.value.length) return
+  loading.value = true
+  error.value = ''
+  try {
+    const r = result.value
+    const flags = providerFlags()
+    const res = await refineLayout({
+      roof_polygons: r.segmentation.roof_polygons,
+      obstacles: r.segmentation.obstacles,
+      user_boxes: userBoxes.value,
+      width_px: r.dimensions.width,
+      height_px: r.dimensions.height,
+      meters_per_pixel: r.meters_per_pixel,
+      ...flags,
+    })
+    const summary = r.analytics.agent_summary
+    result.value = { ...r, layout: res.layout, analytics: { ...res.analytics, agent_summary: summary } }
+    saveProject(result.value, `Refined (${userBoxes.value.length} zones)`)
+    userBoxes.value = []
+    drawMode.value = false
+  } catch (e) {
+    error.value = e.message || String(e)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function runAudit() {
@@ -84,6 +133,8 @@ async function onUpload(file) {
   loading.value = true
   error.value = ''
   selectedId.value = ''
+  userBoxes.value = []
+  drawMode.value = false
   try {
     result.value = await processUpload(file)
     saveProject(result.value, file.name || 'Upload')
@@ -116,6 +167,8 @@ function reset() {
   error.value = ''
   modalOpen.value = false
   mapOpen.value = false
+  userBoxes.value = []
+  drawMode.value = false
   selectedId.value = presets.value[0]?.id || 'residential_gable'
 }
 
@@ -167,8 +220,44 @@ onMounted(bootstrap)
       {{ error }}
     </div>
 
+    <div v-if="result" class="mx-4 mb-3 flex flex-wrap items-center gap-2 md:mx-6">
+      <button
+        class="btn"
+        :class="drawMode ? 'btn-primary' : 'btn-ghost'"
+        type="button"
+        :disabled="loading"
+        @click="drawMode = !drawMode"
+      >
+        {{ drawMode ? 'Drawing… click-drag on roof' : 'Draw exclusion zone' }}
+      </button>
+      <button
+        v-if="userBoxes.length"
+        class="btn btn-primary"
+        type="button"
+        :disabled="loading"
+        @click="onRefine"
+      >
+        {{ loading ? 'Placing…' : `Place panels (${userBoxes.length} zone${userBoxes.length > 1 ? 's' : ''})` }}
+      </button>
+      <button
+        v-if="userBoxes.length"
+        class="btn btn-ghost"
+        type="button"
+        :disabled="loading"
+        @click="clearBoxes"
+      >
+        Clear zones
+      </button>
+    </div>
+
     <main class="grid gap-4 px-4 pb-8 md:grid-cols-[1fr_320px] md:px-6 lg:grid-cols-[1fr_360px]">
-      <ImageCanvas :result="result" :preview-preset="selectedPreset" />
+      <ImageCanvas
+        :result="result"
+        :preview-preset="selectedPreset"
+        :draw-mode="drawMode"
+        :user-boxes="userBoxes"
+        @add-box="onAddBox"
+      />
       <AnalyticsPanel
         :result="result"
         :loading="loading"

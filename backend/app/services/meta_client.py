@@ -449,6 +449,17 @@ def _dedupe_polys(polys: List[Polygon], tol: float = 8.0) -> List[Polygon]:
     return kept
 
 
+def _aabb_gap(a: Polygon, b: Polygon) -> float:
+    """Edge-to-edge gap between two boxes (0 when overlapping)."""
+    ax = [p[0] for p in a]
+    ay = [p[1] for p in a]
+    bx = [p[0] for p in b]
+    by = [p[1] for p in b]
+    dx = max(min(ax) - max(bx), min(bx) - max(ax), 0.0)
+    dy = max(min(ay) - max(by), min(by) - max(ay), 0.0)
+    return (dx**2 + dy**2) ** 0.5
+
+
 def _filter_and_merge_boxes(
     polys: List[Polygon],
     width: int,
@@ -458,6 +469,8 @@ def _filter_and_merge_boxes(
 ) -> List[Polygon]:
     """Drop tiny / huge false positives; keep obstacles that overlap roofs."""
     frame = max(float(width * height), 1.0)
+    diag = max((width**2 + height**2) ** 0.5, 1.0)
+    near_tol = max(40.0, 0.05 * diag)
     cleaned: List[Polygon] = []
     for poly in polys:
         area = _box_area(poly)
@@ -470,15 +483,19 @@ def _filter_and_merge_boxes(
             if frac < 0.0004 or frac > 0.28:
                 continue
             if roofs:
-                # Keep if on/near a roof OR clearly a large canopy (tree) in frame
+                # Keep if on/near a roof, or a large canopy hugging the roof
+                # (overhanging tree). Distant parking lots / lawns / roads
+                # are layout-irrelevant noise — drop them.
                 on_roof = any(
                     _box_iou(poly, r) > 0.02
                     or _centers_near(poly, r)
                     or _point_in_aabb(_center(poly), r)
                     for r in roofs
                 )
-                likely_canopy = frac >= 0.012
-                if not on_roof and not likely_canopy:
+                hugging = frac >= 0.012 and any(
+                    _aabb_gap(poly, r) < near_tol for r in roofs
+                )
+                if not on_roof and not hugging:
                     continue
         cleaned.append(poly)
     return _dedupe_polys(cleaned, tol=12.0)

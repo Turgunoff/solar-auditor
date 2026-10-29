@@ -5,7 +5,11 @@ import { assetUrl } from '../services/api'
 const props = defineProps({
   result: { type: Object, default: null },
   previewPreset: { type: Object, default: null },
+  drawMode: { type: Boolean, default: false },
+  userBoxes: { type: Array, default: () => [] },
 })
+
+const emit = defineEmits(['add-box'])
 
 const canvasRef = ref(null)
 const wrapRef = ref(null)
@@ -15,6 +19,18 @@ const dragging = ref(false)
 const last = ref({ x: 0, y: 0 })
 const imageObj = ref(null)
 const previewOnly = ref(false)
+const draftBox = ref(null)
+
+function toImage(e) {
+  const rect = canvasRef.value.getBoundingClientRect()
+  const x = (e.clientX - rect.left - offset.value.x) / scale.value
+  const y = (e.clientY - rect.top - offset.value.y) / scale.value
+  const img = imageObj.value
+  return {
+    x: Math.min(Math.max(x, 0), img ? img.width : x),
+    y: Math.min(Math.max(y, 0), img ? img.height : y),
+  }
+}
 
 async function loadImage(url) {
   return new Promise((resolve, reject) => {
@@ -101,6 +117,31 @@ function draw() {
     ctx.stroke()
   }
 
+  for (const box of props.userBoxes || []) {
+    if (!box?.length) continue
+    ctx.beginPath()
+    box.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)))
+    ctx.closePath()
+    ctx.fillStyle = 'rgba(249, 115, 22, 0.22)'
+    ctx.strokeStyle = '#F97316'
+    ctx.lineWidth = 2 / scale.value
+    ctx.setLineDash([8 / scale.value, 5 / scale.value])
+    ctx.fill()
+    ctx.stroke()
+    ctx.setLineDash([])
+  }
+
+  if (draftBox.value) {
+    const d = draftBox.value
+    ctx.fillStyle = 'rgba(249, 115, 22, 0.25)'
+    ctx.strokeStyle = '#F97316'
+    ctx.lineWidth = 2 / scale.value
+    ctx.setLineDash([8 / scale.value, 5 / scale.value])
+    ctx.fillRect(d.x0, d.y0, d.x1 - d.x0, d.y1 - d.y0)
+    ctx.strokeRect(d.x0, d.y0, d.x1 - d.x0, d.y1 - d.y0)
+    ctx.setLineDash([])
+  }
+
   const panels = props.result.layout?.panels || []
   for (const p of panels) {
     const rot = ((p.rotation || 0) * Math.PI) / 180
@@ -165,11 +206,23 @@ function onWheel(e) {
 }
 
 function onDown(e) {
+  if (props.drawMode && imageObj.value && props.result) {
+    const p = toImage(e)
+    draftBox.value = { x0: p.x, y0: p.y, x1: p.x, y1: p.y }
+    return
+  }
   dragging.value = true
   last.value = { x: e.clientX, y: e.clientY }
 }
 
 function onMove(e) {
+  if (draftBox.value) {
+    const p = toImage(e)
+    draftBox.value.x1 = p.x
+    draftBox.value.y1 = p.y
+    draw()
+    return
+  }
   if (!dragging.value) return
   offset.value = {
     x: offset.value.x + (e.clientX - last.value.x),
@@ -180,6 +233,25 @@ function onMove(e) {
 }
 
 function onUp() {
+  if (draftBox.value) {
+    const d = draftBox.value
+    draftBox.value = null
+    const w = Math.abs(d.x1 - d.x0)
+    const h = Math.abs(d.y1 - d.y0)
+    if (w > 8 && h > 8) {
+      const x0 = Math.min(d.x0, d.x1)
+      const y0 = Math.min(d.y0, d.y1)
+      emit('add-box', [
+        [x0, y0],
+        [x0 + w, y0],
+        [x0 + w, y0 + h],
+        [x0, y0 + h],
+      ])
+    } else {
+      draw()
+    }
+    return
+  }
   dragging.value = false
 }
 

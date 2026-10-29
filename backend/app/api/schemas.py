@@ -70,6 +70,22 @@ class LeadOut(BaseModel):
     stored: str = "server"
 
 
+class RefineRequest(BaseModel):
+    roof_polygons: List[Polygon]
+    obstacles: List[Polygon] = []
+    user_boxes: List[Polygon] = []
+    width_px: int = Field(..., gt=0)
+    height_px: int = Field(..., gt=0)
+    meters_per_pixel: float = Field(..., gt=0)
+    sam_overbox: bool = True
+    pitched: bool = True
+
+
+class RefineResponse(BaseModel):
+    layout: LayoutResult
+    analytics: AnalyticsResult
+
+
 class MapCaptureRequest(BaseModel):
     lat: float = Field(..., ge=-90, le=90)
     lng: float = Field(..., ge=-180, le=180)
@@ -81,6 +97,7 @@ class ProcessResponse(BaseModel):
     project_id: str
     image_url: str
     dimensions: Dimensions
+    meters_per_pixel: float = 0.0
     provider: ProviderInfo
     segmentation: SegmentationResult
     layout: LayoutResult
@@ -96,6 +113,7 @@ class PresetInfo(BaseModel):
     label: str
     thumbnail_url: str
     meters_per_pixel: float
+    pitched: bool = True
 
 
 class PresetsResponse(BaseModel):

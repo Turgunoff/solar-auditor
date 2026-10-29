@@ -91,6 +91,16 @@ export function assetUrl(path) {
   return path
 }
 
+export async function refineLayout(payload) {
+  const res = await fetch(`${BASE}/api/v1/process/refine`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) throw new Error(await parseError(res))
+  return res.json()
+}
+
 export async function submitLead(lead) {
   const res = await fetch(`${BASE}/api/v1/leads`, {
     method: 'POST',

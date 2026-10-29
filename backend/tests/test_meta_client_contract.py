@@ -110,12 +110,16 @@ def test_filter_obstacles_keeps_canopy_drops_distant_speck():
     W = H = 1000
     roof = [(100, 100), (600, 100), (600, 600), (100, 600)]
     on_roof = [(200, 200), (260, 200), (260, 260), (200, 260)]
-    canopy = [(700, 700), (900, 700), (900, 900), (700, 900)]  # 4% off-roof
+    # 4% canopy hugging the roof edge (gap 20px < tol) — kept.
+    canopy = [(620, 300), (820, 300), (820, 500), (620, 500)]
+    # Same-size canopy far from the roof (gap > tol) — dropped as noise.
+    far_canopy = [(750, 750), (950, 750), (950, 950), (750, 950)]
     speck = [(700, 100), (710, 100), (710, 110), (700, 110)]
     out = _filter_and_merge_boxes(
-        [on_roof, canopy, speck], W, H, kind="obstacle", roofs=[roof]
+        [on_roof, canopy, far_canopy, speck], W, H, kind="obstacle", roofs=[roof]
     )
-    assert on_roof in out and canopy in out and speck not in out
+    assert on_roof in out and canopy in out
+    assert far_canopy not in out and speck not in out
 
 
 def test_select_primary_roofs_prefers_central():

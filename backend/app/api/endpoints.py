@@ -18,6 +18,8 @@ from app.api.schemas import (
     LeadIn,
     LeadOut,
     MapCaptureRequest,
+    RefineRequest,
+    RefineResponse,
     PresetInfo,
     PresetsResponse,
     ProcessRequest,
@@ -138,6 +140,7 @@ def list_presets() -> PresetsResponse:
                 label=p["label"],
                 thumbnail_url=f"/static/uploads/{p['filename']}",
                 meters_per_pixel=p["meters_per_pixel"],
+                pitched=p.get("pitched", True),
             )
             for p in PRESETS
         ]
@@ -217,6 +220,7 @@ def _run_pipeline(
         project_id=project_id,
         image_url=image_url,
         dimensions=Dimensions(width=width, height=height),
+        meters_per_pixel=meters_per_pixel,
         provider=provider,
         segmentation=SegmentationResult(
             roof_polygons=seg.roof_polygons,
@@ -441,6 +445,61 @@ def submit_lead(body: LeadIn) -> LeadOut:
     with leads_path.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(record, ensure_ascii=False) + "\n")
     return LeadOut()
+
+
+@router.post("/process/refine", response_model=RefineResponse)
+def refine_layout(body: RefineRequest) -> RefineResponse:
+    """Re-pack panels with user-drawn exclusion boxes added as obstacles."""
+    from shapely.geometry import Polygon as ShpPolygon
+    from shapely.ops import unary_union
+
+    settings = get_settings()
+    # Clip user boxes to the roof footprint so oversized strokes can't
+    # trip the huge-box guard — intent is always "not here on the roof".
+    roofs = []
+    for pts in body.roof_polygons:
+        try:
+            poly = ShpPolygon(pts)
+            if not poly.is_empty and poly.area > 0:
+                roofs.append(poly)
+        except Exception:
+            continue
+    clipped: list = []
+    if roofs:
+        union = unary_union(roofs)
+        for pts in body.user_boxes:
+            try:
+                inter = ShpPolygon(pts).intersection(union)
+            except Exception:
+                continue
+            if inter.is_empty:
+                continue
+            geoms = list(inter.geoms) if inter.geom_type == "MultiPolygon" else [inter]
+            for g in geoms:
+                clipped.append(list(g.exterior.coords))
+    obstacles = list(body.obstacles) + clipped
+    layout = place_panels(
+        body.roof_polygons,
+        obstacles,
+        body.width_px,
+        body.height_px,
+        body.meters_per_pixel,
+        settings,
+        sam_overbox=body.sam_overbox,
+        pitched=body.pitched,
+    )
+    area = usable_area_m2(
+        body.roof_polygons,
+        obstacles,
+        body.meters_per_pixel,
+        settings,
+        width_px=body.width_px,
+        height_px=body.height_px,
+        sam_overbox=body.sam_overbox,
+        pitched=body.pitched,
+    )
+    analytics = compute_analytics(layout.total_panels, area, settings)
+    return RefineResponse(layout=layout, analytics=analytics)
 
 
 @router.get("/export-pdf/{project_id}")
