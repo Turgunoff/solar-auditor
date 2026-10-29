@@ -181,6 +181,7 @@ def place_panels(
     meters_per_pixel: float,
     settings: Settings,
     sam_overbox: bool = True,
+    pitched: bool = True,
 ) -> LayoutResult:
     """Pack panels onto roof polygons.
 
@@ -188,6 +189,8 @@ def place_panels(
     central-roof pick, south-half cut) for live SAM boxes that over-include
     yards and both gable faces. Pass False for tight outlines (mock
     templates) where that erosion would destroy small roofs.
+    pitched=False skips the south-half cut for flat roofs, where every
+    orientation is usable.
     """
     panel_w = settings.panel_width_m / meters_per_pixel
     panel_h = settings.panel_height_m / meters_per_pixel
@@ -249,7 +252,7 @@ def place_panels(
                 usable = roof
         if blocked is not None and not usable.is_empty:
             usable = usable.difference(blocked)
-        if sam_overbox:
+        if sam_overbox and pitched:
             usable = sun_facing_region(usable, meters_per_pixel)
         if usable.is_empty:
             continue
@@ -278,6 +281,7 @@ def usable_area_m2(
     width_px: int | None = None,
     height_px: int | None = None,
     sam_overbox: bool = True,
+    pitched: bool = True,
 ) -> float:
     roofs = [_to_polygon(p) for p in roof_polygons]
     roofs = [r for r in roofs if r is not None]
@@ -289,7 +293,8 @@ def usable_area_m2(
     if sam_overbox:
         roofs = _prefer_central_roofs(roofs, w, h, max_roofs=1)
         roofs = [_shrink_sam_overbox(r, meters_per_pixel, setback_px) for r in roofs]
-        roofs = [sun_facing_region(r, meters_per_pixel) for r in roofs]
+        if pitched:
+            roofs = [sun_facing_region(r, meters_per_pixel) for r in roofs]
     else:
         shrunk = [
             r.buffer(-setback_px) if setback_px > 0 else r for r in roofs

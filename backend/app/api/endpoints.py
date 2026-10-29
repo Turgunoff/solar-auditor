@@ -44,18 +44,21 @@ PRESETS = [
         "label": "Preset 1 (Gable)",
         "filename": "residential_gable.jpg",
         "meters_per_pixel": 0.035,
+        "pitched": True,
     },
     {
         "id": "complex_hip",
         "label": "Preset 2 (Hip Roof)",
         "filename": "complex_hip.jpg",
         "meters_per_pixel": 0.04,
+        "pitched": True,
     },
     {
         "id": "commercial_flat_hvac",
         "label": "Preset 3 (Commercial)",
         "filename": "commercial_flat_hvac.jpg",
         "meters_per_pixel": 0.05,
+        "pitched": False,
     },
 ]
 
@@ -164,6 +167,9 @@ def _run_pipeline(
     tight_outlines = seg.provider == "mock" or seg.provider.endswith(
         "+mock-fallback"
     )
+    # Presets know their roof type; uploads default to pitched (safe).
+    preset = next((p for p in PRESETS if p["id"] == preset_id), None)
+    pitched = preset.get("pitched", True) if preset else True
 
     layout = place_panels(
         seg.roof_polygons,
@@ -173,6 +179,7 @@ def _run_pipeline(
         meters_per_pixel,
         settings,
         sam_overbox=not tight_outlines,
+        pitched=pitched,
     )
     area = usable_area_m2(
         seg.roof_polygons,
@@ -182,6 +189,7 @@ def _run_pipeline(
         width_px=width,
         height_px=height,
         sam_overbox=not tight_outlines,
+        pitched=pitched,
     )
 
     analytics = compute_analytics(layout.total_panels, area, settings)

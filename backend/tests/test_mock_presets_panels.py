@@ -31,3 +31,12 @@ def test_overbox_path_still_erodes():
     overbox = place_panels(roofs, [], 640, 640, 0.05, settings, sam_overbox=True)
     assert tight.total_panels >= overbox.total_panels
     assert overbox.total_panels > 0
+
+
+def test_flat_roof_skips_south_cut():
+    """Flat roofs pack the whole surface; pitched keeps the south cut."""
+    settings = Settings(use_mock=True)
+    roofs = [[(100, 100), (700, 100), (700, 500), (100, 500)]]
+    flat = place_panels(roofs, [], 800, 600, 0.05, settings, pitched=False)
+    pitched = place_panels(roofs, [], 800, 600, 0.05, settings, pitched=True)
+    assert flat.total_panels > pitched.total_panels > 0
