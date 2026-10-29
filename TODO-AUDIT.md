@@ -36,6 +36,11 @@ uchidan-ucchegacha tasdiqlanmagan.
       panel chizish o'rniga 422 qaytadi (`segmentation.py` + `endpoints.py`).
       Pipeline regression test (`test_pipeline_no_roof.py`) + production'da jonli
       tekshiruv: tom-bo'lmagan rasmga halol xato, panel yo'q. 38/38 yashil.
+- [x] Flat tomlar to'liq qoplanadi (2026-10-29): commercial preset'da faqat yarim
+      tomga panel tushayotgandi — sababi `COMMERCIAL_FLAT_M2` chegarasi preset
+      masshtabida ishlamagani. Preset'lar endi `pitched` bayrog'ini olib yuradi,
+      flat tomda south-cut o'tkazib yuboriladi. Jonli test: 2 → 988 panel
+      (sof `meta-sam-3.1`), overlay ko'z bilan tasdiqlandi. 39/39 yashil.
 - [x] Analitikaga `derate` qo'shildi (2026-10-28): `DERATE=0.85` default
       (inverter/ifloslanish/sim yo'qotishlari), `.env.example` da. Frontend formulani
       takrorlamaydi — faqat API sonlarini ko'rsatadi. Soya/qiyalik hali yo'q.
