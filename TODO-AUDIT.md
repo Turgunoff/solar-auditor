@@ -32,6 +32,10 @@ uchidan-ucchegacha tasdiqlanmagan.
 - [!] Sintetik presetlarda SAM jonli rejimda bo'sh qaytadi → mock fallback
       (kutilgan holat, `INTEGRATION.md` da qayd etilgan). Jonli demo uchun real sun'iy
       yo'ldosh kesmasi kerak — bu tashqi ma'lumot masalasi, kod bilan yechilmaydi.
+- [x] Fail-closed upload'lar (2026-10-28): jonli SAM tom topolmasa, generik qutiga
+      panel chizish o'rniga 422 qaytadi (`segmentation.py` + `endpoints.py`).
+      Pipeline regression test (`test_pipeline_no_roof.py`) + production'da jonli
+      tekshiruv: tom-bo'lmagan rasmga halol xato, panel yo'q. 38/38 yashil.
 - [x] Analitikaga `derate` qo'shildi (2026-10-28): `DERATE=0.85` default
       (inverter/ifloslanish/sim yo'qotishlari), `.env.example` da. Frontend formulani
       takrorlamaydi — faqat API sonlarini ko'rsatadi. Soya/qiyalik hali yo'q.
