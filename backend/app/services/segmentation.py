@@ -142,6 +142,11 @@ class MetaSAMSegmentor:
             logger.warning("SAM live path unavailable: %s", exc)
             if not self.settings.allow_mock_fallback:
                 raise
+            if preset_id not in PRESET_TEMPLATES:
+                # Uploads / map captures have no calibrated template: a
+                # generic box would land panels on anything (faces, yards).
+                # Fail closed with the live error instead of a false audit.
+                raise
             result = self.fallback.segment(image_path, width, height, preset_id)
             return SegmentationOutput(
                 roof_polygons=result.roof_polygons,

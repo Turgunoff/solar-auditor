@@ -176,6 +176,26 @@ def test_to_jpeg_converts_png():
     assert out[:3] == b"\xff\xd8\xff"
 
 
+def test_upload_fallback_fails_closed_on_no_roof(monkeypatch):
+    """Live SAM failure on a non-preset image must not yield generic boxes."""
+    from app.services.segmentation import MetaSAMSegmentor, MockSegmentor
+
+    settings = live_settings()
+    seg = MetaSAMSegmentor(settings, MockSegmentor(settings))
+
+    def boom(_path, _w, _h):
+        raise MetaAPIError("SAM 3.1 returned no usable roof boxes")
+
+    monkeypatch.setattr(seg.client, "segment_rooftop", boom)
+    # Preset runs still fall back to calibrated templates.
+    out = seg.segment("x.jpg", 1024, 768, "residential_gable")
+    assert out.provider.endswith("+mock-fallback")
+    assert len(out.roof_polygons) == 2
+    # Uploads / map captures raise instead of drawing panels on anything.
+    with pytest.raises(MetaAPIError, match="no usable roof boxes"):
+        seg.segment("x.jpg", 1024, 768, None)
+
+
 def _transport_client(handler):
     import httpx
 

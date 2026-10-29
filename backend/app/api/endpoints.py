@@ -154,7 +154,10 @@ def _run_pipeline(
     project_id = f"solar_proj_{uuid.uuid4().hex[:8]}"
 
     segmentor = get_segmentation_service(settings)
-    seg = segmentor.segment(str(image_path), width, height, preset_id)
+    try:
+        seg = segmentor.segment(str(image_path), width, height, preset_id)
+    except (MetaAPIError, MetaAPINotReady) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     # Mock templates are tight outlines; live SAM returns over-inclusive
     # boxes that need the aggressive overbox handling in the layout engine.
