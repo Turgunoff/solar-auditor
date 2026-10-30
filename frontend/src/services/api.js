@@ -64,6 +64,12 @@ export async function processMap({ lat, lng, zoom }) {
   const imgRes = await fetch(staticUrl)
   if (!imgRes.ok) {
     const text = await imgRes.text().catch(() => '')
+    if (imgRes.status === 403) {
+      throw new Error(
+        'Sun’iy yo‘ldosh rasmini olishga ruxsat yo‘q (403). Cloud Console → API Library → ' +
+        '“Maps Static API” ni yoqing va kalit cheklovlariga (API restrictions) uni qo‘shing.',
+      )
+    }
     throw new Error(`Static Maps ${imgRes.status}: ${text.slice(0, 200) || imgRes.statusText}`)
   }
   const blob = await imgRes.blob()
