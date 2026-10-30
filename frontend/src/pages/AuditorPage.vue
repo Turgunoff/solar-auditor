@@ -25,7 +25,6 @@ const mode = ref('mock')
 const models = ref({ segmentation: 'mock', render: 'mock', agent: 'mock' })
 const statusMessage = ref('')
 const presets = ref([])
-const selectedId = ref('residential_gable')
 const result = ref(null)
 const loading = ref(false)
 const error = ref('')
@@ -37,13 +36,29 @@ const userBoxes = ref([])
 const assumptionDefaults = ref(null)
 const assumptions = ref(null)
 
+// Staged source: chosen but NOT yet analyzed.
+const staged = ref({ kind: '', id: '', name: '', url: '', file: null, coords: null })
+
 getAssumptionDefaults().then((d) => {
   assumptionDefaults.value = d
 }).catch(() => {})
 
 const selectedPreset = computed(() =>
-  presets.value.find((p) => p.id === selectedId.value) || null,
+  presets.value.find((p) => p.id === (staged.value.kind === 'preset' ? staged.value.id : '')) || null,
 )
+
+const canRun = computed(() => !!staged.value.kind && !loading.value)
+const stageLabel = computed(() => {
+  if (staged.value.kind === 'preset') {
+    return presets.value.find((p) => p.id === staged.value.id)?.label || staged.value.id
+  }
+  if (staged.value.kind === 'upload') return staged.value.name || 'Uploaded aerial'
+  if (staged.value.kind === 'map' && staged.value.coords) {
+    const { lat, lng } = staged.value.coords
+    return `Map ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+  }
+  return ''
+})
 
 async function bootstrap() {
   try {
@@ -52,9 +67,6 @@ async function bootstrap() {
     models.value = health.models
     statusMessage.value = health.message || ''
     presets.value = presetRes.presets
-    if (presets.value.length && !selectedId.value) {
-      selectedId.value = presets.value[0].id
-    }
   } catch (e) {
     error.value = e.message || String(e)
   }
@@ -64,17 +76,39 @@ async function bootstrap() {
     const saved = getProject(pid)
     if (saved?.snapshot) {
       result.value = saved.snapshot
-      selectedId.value = ''
     }
   }
 }
 
-function onSelectPreset(id) {
-  selectedId.value = id
+function clearOutcome() {
   result.value = null
   error.value = ''
   userBoxes.value = []
   drawMode.value = false
+}
+
+function onSelectPreset(id) {
+  const p = presets.value.find((x) => x.id === id)
+  staged.value = { kind: 'preset', id, name: p?.label || id, url: p?.thumbnail_url || '', file: null, coords: null }
+  clearOutcome()
+}
+
+function onStageUpload(file) {
+  if (staged.value.url?.startsWith('blob:')) URL.revokeObjectURL(staged.value.url)
+  staged.value = { kind: 'upload', id: '', name: file.name || 'Uploaded aerial', url: URL.createObjectURL(file), file, coords: null }
+  clearOutcome()
+}
+
+function clearUpload() {
+  if (staged.value.url?.startsWith('blob:')) URL.revokeObjectURL(staged.value.url)
+  staged.value = { kind: '', id: '', name: '', url: '', file: null, coords: null }
+  clearOutcome()
+}
+
+function onStageMap({ lat, lng, zoom }) {
+  staged.value = { kind: 'map', id: '', name: '', url: '', file: null, coords: { lat, lng, zoom } }
+  clearOutcome()
+  mapOpen.value = false
 }
 
 function onAddBox(box) {
@@ -89,7 +123,7 @@ function clearBoxes() {
 function providerFlags() {
   const seg = result.value?.provider?.segmentation || ''
   const tight = seg === 'mock' || seg.endsWith('+mock-fallback')
-  const preset = presets.value.find((p) => p.id === selectedId.value)
+  const preset = presets.value.find((p) => p.id === staged.value.id)
   return { sam_overbox: !tight, pitched: preset ? preset.pitched !== false : true }
 }
 
@@ -129,45 +163,23 @@ async function onRefine() {
 }
 
 async function runAudit() {
-  if (!selectedId.value) return
+  if (!staged.value.kind || loading.value) return
   loading.value = true
   error.value = ''
   try {
-    result.value = await processPreset(selectedId.value)
-    const label = presets.value.find((p) => p.id === selectedId.value)?.label || selectedId.value
-    saveProject(result.value, label)
-  } catch (e) {
-    error.value = e.message || String(e)
-  } finally {
-    loading.value = false
-  }
-}
-
-async function onUpload(file) {
-  loading.value = true
-  error.value = ''
-  selectedId.value = ''
-  userBoxes.value = []
-  drawMode.value = false
-  try {
-    result.value = await processUpload(file)
-    saveProject(result.value, file.name || 'Upload')
-  } catch (e) {
-    error.value = e.message || String(e)
-  } finally {
-    loading.value = false
-  }
-}
-
-async function onMapCapture({ lat, lng, zoom }) {
-  loading.value = true
-  error.value = ''
-  selectedId.value = ''
-  mapPickerRef.value?.setCapturing?.(true)
-  try {
-    result.value = await processMap({ lat, lng, zoom })
-    saveProject(result.value, `Map ${lat.toFixed(5)}, ${lng.toFixed(5)}`)
-    mapOpen.value = false
+    if (staged.value.kind === 'preset') {
+      result.value = await processPreset(staged.value.id)
+      const label = presets.value.find((p) => p.id === staged.value.id)?.label || staged.value.id
+      saveProject(result.value, label)
+    } else if (staged.value.kind === 'upload') {
+      result.value = await processUpload(staged.value.file)
+      saveProject(result.value, staged.value.name || 'Upload')
+    } else if (staged.value.kind === 'map') {
+      mapPickerRef.value?.setCapturing?.(true)
+      result.value = await processMap(staged.value.coords)
+      const { lat, lng } = staged.value.coords
+      saveProject(result.value, `Map ${lat.toFixed(5)}, ${lng.toFixed(5)}`)
+    }
   } catch (e) {
     error.value = e.message || String(e)
     mapPickerRef.value?.setCapturing?.(false)
@@ -177,13 +189,11 @@ async function onMapCapture({ lat, lng, zoom }) {
 }
 
 function reset() {
-  result.value = null
-  error.value = ''
+  if (staged.value.url?.startsWith('blob:')) URL.revokeObjectURL(staged.value.url)
+  staged.value = { kind: '', id: '', name: '', url: '', file: null, coords: null }
+  clearOutcome()
   modalOpen.value = false
   mapOpen.value = false
-  userBoxes.value = []
-  drawMode.value = false
-  selectedId.value = presets.value[0]?.id || 'residential_gable'
 }
 
 function downloadPdf() {
@@ -198,7 +208,6 @@ watch(
       const saved = getProject(pid)
       if (saved?.snapshot) {
         result.value = saved.snapshot
-        selectedId.value = ''
       }
     }
   },
@@ -217,24 +226,60 @@ onMounted(bootstrap)
     />
     <Presets
       :presets="presets"
-      :selected-id="selectedId"
+      :selected-id="staged.kind === 'preset' ? staged.id : ''"
       :loading="loading"
       :maps-enabled="mapsConfigured()"
+      :upload-name="staged.kind === 'upload' ? staged.name : ''"
+      :upload-url="staged.kind === 'upload' ? staged.url : ''"
+      :staged-kind="staged.kind"
       @select="onSelectPreset"
-      @upload="onUpload"
-      @run="runAudit"
-      @reset="reset"
+      @upload="onStageUpload"
+      @clear-upload="clearUpload"
       @open-map="mapOpen = true"
     />
 
+    <!-- Step 2 · Review + Run -->
+    <div class="mx-4 mt-3 flex flex-wrap items-center gap-2 md:mx-6">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
+        2 · Review &amp; run
+      </span>
+      <span v-if="stageLabel" class="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">
+        {{ stageLabel }}
+      </span>
+      <span v-else class="text-xs text-slate-400">
+        Choose a source above first
+      </span>
+      <button
+        class="btn btn-primary"
+        type="button"
+        :disabled="!canRun"
+        @click="runAudit"
+      >
+        {{ loading ? 'Analyzing…' : result ? 'Re-run AI Audit' : 'Run AI Audit' }}
+      </button>
+      <button
+        v-if="staged.kind || result"
+        class="btn btn-ghost"
+        type="button"
+        :disabled="loading"
+        @click="reset"
+      >
+        Reset
+      </button>
+    </div>
+
     <div
       v-if="error"
-      class="mx-4 mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 md:mx-6"
+      class="mx-4 mb-3 mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 md:mx-6"
     >
       {{ error }}
     </div>
 
-    <div v-if="result" class="mx-4 mb-3 flex flex-wrap items-center gap-2 md:mx-6">
+    <!-- Step 3 · Refine (after analysis) -->
+    <div v-if="result" class="mx-4 mb-3 mt-3 flex flex-wrap items-center gap-2 md:mx-6">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
+        3 · Refine
+      </span>
       <button
         class="btn"
         :class="drawMode ? 'btn-primary' : 'btn-ghost'"
@@ -268,6 +313,7 @@ onMounted(bootstrap)
       <ImageCanvas
         :result="result"
         :preview-preset="selectedPreset"
+        :preview-url="staged.kind === 'upload' ? staged.url : ''"
         :draw-mode="drawMode"
         :user-boxes="userBoxes"
         @add-box="onAddBox"
@@ -293,7 +339,7 @@ onMounted(bootstrap)
       ref="mapPickerRef"
       :open="mapOpen"
       @close="mapOpen = false"
-      @capture="onMapCapture"
+      @capture="onStageMap"
     />
   </div>
 </template>

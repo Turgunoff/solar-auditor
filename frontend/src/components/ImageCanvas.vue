@@ -5,6 +5,7 @@ import { assetUrl } from '../services/api'
 const props = defineProps({
   result: { type: Object, default: null },
   previewPreset: { type: Object, default: null },
+  previewUrl: { type: String, default: '' },
   drawMode: { type: Boolean, default: false },
   userBoxes: { type: Array, default: () => [] },
 })
@@ -181,10 +182,11 @@ async function refreshImage() {
     return
   }
 
-  if (props.previewPreset?.thumbnail_url) {
+  const stagedUrl = props.previewUrl || props.previewPreset?.thumbnail_url
+  if (stagedUrl) {
     previewOnly.value = true
     try {
-      imageObj.value = await loadImage(props.previewPreset.thumbnail_url)
+      imageObj.value = await loadImage(stagedUrl)
       fitImage()
     } catch {
       imageObj.value = null
@@ -206,7 +208,7 @@ function onWheel(e) {
 }
 
 function onDown(e) {
-  if (props.drawMode && imageObj.value && props.result) {
+  if (props.drawMode && imageObj.value && (props.result || previewOnly.value)) {
     const p = toImage(e)
     draftBox.value = { x0: p.x, y0: p.y, x1: p.x, y1: p.y }
     return
@@ -257,6 +259,7 @@ function onUp() {
 
 watch(() => props.result, refreshImage, { deep: true })
 watch(() => props.previewPreset, refreshImage, { deep: true })
+watch(() => props.previewUrl, refreshImage)
 
 onMounted(() => {
   refreshImage()

@@ -44,8 +44,8 @@ Open http://localhost:5173 — Vite proxies `/api` and `/static` to the backend.
 ## Demo flow
 
 1. From the landing page, click **Open auditor** (`/app`).
-2. Choose **Preset 1 / 2 / 3** (or upload an aerial JPG/PNG, or pick on Google Map).
-3. Click **Run AI Audit**.
+2. Choose a source: **Preset 1 / 2 / 3**, upload an aerial JPG/PNG (drag & drop), or pick on Google Map — this only stages a preview, nothing is analyzed yet.
+3. Review the preview, then click **Run AI Audit**.
 4. Inspect green roof / red obstacles / blue panel grid on the canvas.
 5. Optional: **Draw exclusion zone** → **Place panels** to re-pack around your zones.
 6. Optional: **Estimate settings** — panel size/power, prices, tariff, battery, on/off-grid → **Recalculate**.

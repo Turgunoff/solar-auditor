@@ -329,7 +329,7 @@ defineExpose({
           :disabled="!canCapture"
           @click="onCapture"
         >
-          {{ capturing ? 'Capturing…' : 'Capture & Run AI Audit' }}
+          {{ capturing ? 'Capturing…' : 'Use this area' }}
         </button>
       </div>
     </div>
