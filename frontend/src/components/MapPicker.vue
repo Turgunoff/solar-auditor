@@ -60,7 +60,7 @@ async function initMap() {
       mapTypeControlOptions: {
         mapTypeIds: ['satellite', 'hybrid', 'roadmap'],
       },
-      minZoom: 17,
+      minZoom: 2,
       maxZoom: 21,
     })
 
