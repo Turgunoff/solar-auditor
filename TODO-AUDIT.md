@@ -46,6 +46,11 @@ uchidan-ucchegacha tasdiqlanmagan.
       olinadi); 2) tomga tegmagan katta to'siqlar (parking/yo'l/maysa) endi
       tashlanadi — faqat tomdagi yoki tomga yopishgan canopy qoladi. Jonli
       tekshiruv: refine 48 panel qaytardi. 41/41 backend + 4/4 frontend yashil.
+- [x] Taxminlar muharriri (2026-10-29): `Assumptions` — panel quvvati/o'lchami,
+      $/kW, tarif, quyosh soati, akkumulyator (kWh + $/kWh), on/off-grid.
+      Off-grid batareyasiz 400 qaytaradi. `GET /api/v1/assumptions/defaults`
+      dan UI boshlanadi, Recalculate refine orqali qayta hisoblaydi. Jonli test:
+      60 panel, offgrid + 10 kWh ($3000) to'g'ri chiqdi. 45/45 + 4/4 yashil.
 - [x] Analitikaga `derate` qo'shildi (2026-10-28): `DERATE=0.85` default
       (inverter/ifloslanish/sim yo'qotishlari), `.env.example` da. Frontend formulani
       takrorlamaydi — faqat API sonlarini ko'rsatadi. Soya/qiyalik hali yo'q.
