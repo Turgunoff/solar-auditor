@@ -25,6 +25,7 @@ let map = null
 let marker = null
 let autocomplete = null
 let geocoder = null
+let suggestTimer = null
 
 const DEFAULT = { lat: 41.3111, lng: 69.2797 } // Tashkent fallback
 
@@ -96,6 +97,7 @@ async function initMap() {
         const place = autocomplete.getPlace()
         const loc = place?.geometry?.location
         if (!loc) return
+        placesMissing.value = false
         goTo(loc.lat(), loc.lng(), 20)
         addressHint.value = place.formatted_address || place.name || ''
         if (searchEl.value && addressHint.value) {
@@ -105,6 +107,19 @@ async function initMap() {
     } else if (searchEl.value) {
       // Places library unavailable — searching would silently do nothing.
       placesMissing.value = true
+    }
+
+    if (searchEl.value) {
+      // If the user types but Google returns no suggestions, the Places API
+      // is almost certainly disabled for the key — say so instead of silence.
+      searchEl.value.addEventListener('input', () => {
+        clearTimeout(suggestTimer)
+        const q = searchEl.value?.value?.trim() || ''
+        if (q.length < 3) return
+        suggestTimer = setTimeout(() => {
+          if (!document.querySelector('.pac-item')) placesMissing.value = true
+        }, 6000)
+      })
     }
 
     zoomLabel.value = map.getZoom() || 20
@@ -225,6 +240,7 @@ async function useMyLocation() {
 }
 
 function destroyMap() {
+  clearTimeout(suggestTimer)
   autocomplete = null
   geocoder = null
   marker = null
