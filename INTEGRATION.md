@@ -9,8 +9,10 @@ This project is **fully runnable offline** with mocks. Live Meta models plug in 
 | Upload / presets / canvas / PDF | Done |
 | Shapely layout + ROI math | Done |
 | Mock SAM / Muse Image / Muse text | Done |
-| Live `MetaModelClient` (files + responses) | Done |
+| Live `MetaModelClient` (files + responses, injectable transport) | Done |
 | SAM 3.1 segmentation | Live (empty on synthetic samples → mock fallback) |
+| Fail-closed uploads | Live SAM miss on non-preset image → 422, no generic panels |
+| Flat vs pitched | Presets carry `pitched`; flat skips the south-half cut |
 | Muse Image 1.0 render | Live (`image_generation_call.result` → JPEG) |
 | Muse Spark 1.3 agent summary | Live |
 | Live credentials | Set in local `.env` (gitignored) |

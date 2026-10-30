@@ -38,17 +38,19 @@ Open http://localhost:5173 — Vite proxies `/api` and `/static` to the backend.
 | `/how-it-works` | Product pipeline |
 | `/pricing` | Plans + waitlist |
 | `/projects` | Browser-saved audits |
-| `/contact` | Lead form (localStorage MVP) |
+| `/contact` | Lead form (server JSONL + browser fallback) |
 | `/setup` | Mock vs Meta API readiness |
 
 ## Demo flow
 
 1. From the landing page, click **Open auditor** (`/app`).
-2. Choose **Preset 1 / 2 / 3** (or upload an aerial JPG/PNG).
+2. Choose **Preset 1 / 2 / 3** (or upload an aerial JPG/PNG, or pick on Google Map).
 3. Click **Run AI Audit**.
 4. Inspect green roof / red obstacles / blue panel grid on the canvas.
-5. Open **View 3D Visualization** and **Download PDF Report**.
-6. Revisit audits under **Projects**.
+5. Optional: **Draw exclusion zone** → **Place panels** to re-pack around your zones.
+6. Optional: **Estimate settings** — panel size/power, prices, tariff, battery, on/off-grid → **Recalculate**.
+7. Open **View 3D Visualization** and **Download PDF Report**.
+8. Revisit audits under **Projects**.
 
 ## Meta API (live-first, mock fallback)
 
@@ -68,20 +70,37 @@ See `.env.example`. Important flags:
 
 | Variable | Default | Meaning |
 |----------|---------|---------|
-| `USE_MOCK` | `true` | Force mock adapters |
+| `USE_MOCK` | `false` | `true` = fully offline mock demo |
 | `META_API_KEY` | empty | Empty → auto-mock |
-| `ALLOW_MOCK_FALLBACK` | `true` | Live path falls back to mock until API wired |
+| `ALLOW_MOCK_FALLBACK` | `true` | Failed live calls fall back to mock |
+| `DERATE` | `0.85` | System loss factor |
+| `BATTERY_PRICE_PER_KWH_USD` | `300.0` | Default storage price |
+| `MAX_UPLOAD_MB` / `MIN_UPLOAD_PX` / `MAX_UPLOAD_MP` | `15` / `64` / `50.0` | Upload guards |
+| `STATIC_RETENTION_DAYS` | `7` | Static cleanup window |
+| `RATE_LIMIT_PER_MINUTE` | `60` | Per-IP limit on process/lead endpoints |
 
-Switching to live Meta Model API should only require env + implementing the HTTP clients inside `segmentation.py` / `render_engine.py` / `agent_report.py` — UI and business logic stay unchanged.
+## API (`/api/v1`)
 
-## API
-
-- `GET /api/v1/health`
+- `GET /api/v1/health`, `GET /api/v1/status?probe=true`
 - `GET /api/v1/presets`
 - `POST /api/v1/process/preset` `{ "preset_id": "residential_gable" }`
 - `POST /api/v1/process/upload` `multipart file`
+- `POST /api/v1/process/map-upload` (Static Maps capture + lat/lng/zoom)
+- `POST /api/v1/process/refine` (re-pack with `user_boxes` + `assumptions`)
+- `GET /api/v1/assumptions/defaults`
+- `POST /api/v1/leads`
 - `GET /api/v1/export-pdf/{project_id}`
 - Interactive docs: http://localhost:8000/docs
+
+Uploads where live SAM finds no roof return **422** (fail-closed) instead of
+panels on arbitrary content.
+
+## Tests
+
+```bash
+cd backend && ../.venv/bin/python -m pytest tests -q   # 45 tests
+cd frontend && npm test                                 # vitest
+```
 
 ## Hackathon positioning
 
