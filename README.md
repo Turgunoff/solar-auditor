@@ -86,7 +86,7 @@ Switching to live Meta Model API should only require env + implementing the HTTP
 ## Hackathon positioning
 
 - **Track:** Indie developer  
-- **Theme:** Build for Your World  
+- **Theme:** Push the Frontier  
 - **Models (adapters ready):** SAM 3.1, Muse Image, Muse Spark/Wonder  
 
 ## License
