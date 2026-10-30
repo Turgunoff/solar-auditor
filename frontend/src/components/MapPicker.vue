@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { loadGoogleMaps, mapsConfigured } from '../services/googleMaps'
+import { loadGoogleMaps, mapsConfigured, mapsKey } from '../services/googleMaps'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -15,6 +15,7 @@ const mapEl = ref(null)
 const searchEl = ref(null)
 const ready = ref(false)
 const error = ref('')
+const placesMissing = ref(false)
 const capturing = ref(false)
 const locating = ref(false)
 const zoomLabel = ref(20)
@@ -87,7 +88,7 @@ async function initMap() {
       geocoder = new gmaps.Geocoder()
     }
 
-    if (searchEl.value && gmaps.places) {
+    if (searchEl.value && gmaps.places?.Autocomplete) {
       autocomplete = new gmaps.places.Autocomplete(searchEl.value, {
         fields: ['geometry', 'formatted_address', 'name'],
       })
@@ -101,6 +102,9 @@ async function initMap() {
           searchEl.value.value = addressHint.value
         }
       })
+    } else if (searchEl.value) {
+      // Places library unavailable — searching would silently do nothing.
+      placesMissing.value = true
     }
 
     zoomLabel.value = map.getZoom() || 20
@@ -189,9 +193,34 @@ async function useMyLocation() {
       maximumAge: 0,
     })
     applyPosition(precise)
+    return
+  } catch (err) {
+    if (err?.code === 1) {
+      locating.value = false
+      error.value = geoErrorMessage(err)
+      return
+    }
+  }
+
+  try {
+    // 3) Last resort: Google Geolocation API (Wi-Fi/cell based, no GPS needed)
+    const key = mapsKey()
+    if (!key) throw new Error('no-key')
+    const res = await fetch(
+      `https://www.googleapis.com/geolocation/v1/geolocate?key=${encodeURIComponent(key)}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' },
+    )
+    if (!res.ok) throw new Error(`geo-http-${res.status}`)
+    const data = await res.json()
+    if (typeof data?.location?.lat !== 'number') throw new Error('geo-empty')
+    goTo(data.location.lat, data.location.lng, 20)
+    fillAddress(data.location.lat, data.location.lng)
+    locating.value = false
+    error.value = ''
   } catch (err) {
     locating.value = false
-    error.value = geoErrorMessage(err)
+    error.value =
+      'Joylashuvni topib bo‘lmadi (GPS ham, tarmoq ham). Manzilni qidiruvdan yozing — masalan, "London, UK".'
   }
 }
 
@@ -202,6 +231,7 @@ function destroyMap() {
   map = null
   ready.value = false
   locating.value = false
+  placesMissing.value = false
   addressHint.value = ''
 }
 
@@ -302,6 +332,11 @@ defineExpose({
 
       <div v-if="error" class="mx-4 mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
         {{ error }}
+      </div>
+
+      <div v-if="placesMissing && ready" class="mx-4 mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        Manzil qidiruvi ishlamayapti — Cloud Console → API Library → <b>Places API</b> ni yoqing,
+        keyin sahifani yangilang. Ayni paytda xaritani sudrab borishingiz mumkin.
       </div>
 
       <div
