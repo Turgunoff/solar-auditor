@@ -8,6 +8,7 @@ import AnalyticsPanel from '../components/AnalyticsPanel.vue'
 import RenderModal from '../components/RenderModal.vue'
 import MapPicker from '../components/MapPicker.vue'
 import {
+  getAssumptionDefaults,
   getHealth,
   getPresets,
   pdfUrl,
@@ -33,6 +34,12 @@ const mapOpen = ref(false)
 const mapPickerRef = ref(null)
 const drawMode = ref(false)
 const userBoxes = ref([])
+const assumptionDefaults = ref(null)
+const assumptions = ref(null)
+
+getAssumptionDefaults().then((d) => {
+  assumptionDefaults.value = d
+}).catch(() => {})
 
 const selectedPreset = computed(() =>
   presets.value.find((p) => p.id === selectedId.value) || null,
@@ -86,8 +93,14 @@ function providerFlags() {
   return { sam_overbox: !tight, pitched: preset ? preset.pitched !== false : true }
 }
 
+async function onApplyAssumptions(a) {
+  assumptions.value = a
+  await onRefine()
+}
+
 async function onRefine() {
-  if (!result.value || !userBoxes.value.length) return
+  if (!result.value) return
+  if (!userBoxes.value.length && !assumptions.value) return
   loading.value = true
   error.value = ''
   try {
@@ -101,6 +114,7 @@ async function onRefine() {
       height_px: r.dimensions.height,
       meters_per_pixel: r.meters_per_pixel,
       ...flags,
+      assumptions: assumptions.value,
     })
     const summary = r.analytics.agent_summary
     result.value = { ...r, layout: res.layout, analytics: { ...res.analytics, agent_summary: summary } }
@@ -261,8 +275,10 @@ onMounted(bootstrap)
       <AnalyticsPanel
         :result="result"
         :loading="loading"
+        :defaults="assumptionDefaults"
         @view-render="modalOpen = true"
         @download-pdf="downloadPdf"
+        @apply-assumptions="onApplyAssumptions"
       />
     </main>
 

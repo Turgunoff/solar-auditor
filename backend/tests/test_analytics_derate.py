@@ -1,5 +1,6 @@
 """Analytics derate math + layout constant boundaries."""
 
+import pytest
 from shapely.geometry import box
 
 from app.core.config import Settings
@@ -32,6 +33,50 @@ def test_zero_panels_gives_none_roi():
     res = compute_analytics(0, 0.0, s)
     assert res.system_capacity_kw == 0.0
     assert res.roi_years is None
+
+
+def test_battery_adds_cost():
+    from app.api.schemas import Assumptions
+
+    s = Settings(use_mock=True)
+    plain = compute_analytics(10, 50.0, s)
+    with_batt = compute_analytics(
+        10, 50.0, s, assumptions=Assumptions(battery_kwh=10.0)
+    )
+    assert with_batt.battery_kwh == 10.0
+    assert with_batt.battery_cost_usd == round(10.0 * 300.0, 2)
+    assert with_batt.estimated_cost_usd > plain.estimated_cost_usd
+    assert with_batt.grid_type == "ongrid"
+
+
+def test_offgrid_requires_battery():
+    from app.api.schemas import Assumptions
+
+    s = Settings(use_mock=True)
+    with pytest.raises(ValueError, match="battery"):
+        compute_analytics(10, 50.0, s, assumptions=Assumptions(grid_type="offgrid"))
+    res = compute_analytics(
+        10, 50.0, s, assumptions=Assumptions(grid_type="offgrid", battery_kwh=5.0)
+    )
+    assert res.grid_type == "offgrid"
+
+
+def test_bad_grid_type_rejected():
+    from app.api.schemas import Assumptions
+
+    s = Settings(use_mock=True)
+    with pytest.raises(ValueError, match="grid_type"):
+        compute_analytics(10, 50.0, s, assumptions=Assumptions(grid_type="island"))
+
+
+def test_tariff_override_flows_to_savings():
+    from app.api.schemas import Assumptions
+
+    s = Settings(use_mock=True)
+    res = compute_analytics(
+        10, 50.0, s, assumptions=Assumptions(tariff_per_kwh_usd=0.25)
+    )
+    assert res.annual_savings_usd == round(res.annual_generation_kwh * 0.25, 2)
 
 
 def test_commercial_threshold_boundary():

@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     default_meters_per_pixel: float = 0.05
     # System losses (soiling, inverter, wiring, mismatch). 0.85 typical.
     derate: float = 0.85
+    battery_price_per_kwh_usd: float = 300.0
 
     google_maps_api_key: str = ""
 

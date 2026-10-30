@@ -152,8 +152,15 @@ def _run_pipeline(
     image_url: str,
     meters_per_pixel: float,
     preset_id: Optional[str],
+    assumptions=None,
 ) -> ProcessResponse:
+    from app.services.analytics import resolve_settings
+
     settings = get_settings()
+    try:
+        settings = resolve_settings(settings, assumptions)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     with Image.open(image_path) as im:
         width, height = im.size
 
@@ -195,7 +202,7 @@ def _run_pipeline(
         pitched=pitched,
     )
 
-    analytics = compute_analytics(layout.total_panels, area, settings)
+    analytics = compute_analytics(layout.total_panels, area, settings, assumptions=assumptions)
     agent = get_agent_service(settings)
     summary, agent_provider = agent.summarize(
         analytics, layout.total_panels, len(seg.obstacles)
@@ -373,7 +380,10 @@ def process_preset(body: ProcessRequest) -> ProcessResponse:
     dest = settings.uploads_dir / dest_name
     shutil.copy2(src, dest)
     image_url = f"/static/uploads/{dest_name}"
-    return _run_pipeline(dest, image_url, preset["meters_per_pixel"], body.preset_id)
+    return _run_pipeline(
+        dest, image_url, preset["meters_per_pixel"], body.preset_id,
+        assumptions=body.assumptions,
+    )
 
 
 @router.post("/process/upload", response_model=ProcessResponse)
@@ -453,7 +463,13 @@ def refine_layout(body: RefineRequest) -> RefineResponse:
     from shapely.geometry import Polygon as ShpPolygon
     from shapely.ops import unary_union
 
+    from app.services.analytics import resolve_settings
+
     settings = get_settings()
+    try:
+        settings = resolve_settings(settings, body.assumptions)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     # Clip user boxes to the roof footprint so oversized strokes can't
     # trip the huge-box guard — intent is always "not here on the roof".
     roofs = []
@@ -498,8 +514,25 @@ def refine_layout(body: RefineRequest) -> RefineResponse:
         sam_overbox=body.sam_overbox,
         pitched=body.pitched,
     )
-    analytics = compute_analytics(layout.total_panels, area, settings)
+    analytics = compute_analytics(
+        layout.total_panels, area, settings, assumptions=body.assumptions
+    )
     return RefineResponse(layout=layout, analytics=analytics)
+
+
+@router.get("/assumptions/defaults")
+def assumptions_defaults() -> dict:
+    """Current server defaults so the UI edits from real numbers."""
+    s = get_settings()
+    return {
+        "panel_kw": s.panel_kw,
+        "panel_width_m": s.panel_width_m,
+        "panel_height_m": s.panel_height_m,
+        "cost_per_kw_usd": s.cost_per_kw_usd,
+        "tariff_per_kwh_usd": s.tariff_per_kwh_usd,
+        "peak_sun_hours": s.peak_sun_hours,
+        "battery_price_per_kwh_usd": s.battery_price_per_kwh_usd,
+    }
 
 
 @router.get("/export-pdf/{project_id}")

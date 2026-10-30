@@ -46,6 +46,23 @@ class AnalyticsResult(BaseModel):
     roi_years: Optional[float] = None
     agent_summary: str = ""
     usable_area_m2: Optional[float] = None
+    battery_kwh: float = 0.0
+    battery_cost_usd: float = 0.0
+    grid_type: str = "ongrid"
+
+
+class Assumptions(BaseModel):
+    """Per-audit overrides — everything optional, defaults come from server."""
+
+    panel_kw: Optional[float] = Field(default=None, gt=0)
+    panel_width_m: Optional[float] = Field(default=None, gt=0)
+    panel_height_m: Optional[float] = Field(default=None, gt=0)
+    cost_per_kw_usd: Optional[float] = Field(default=None, ge=0)
+    tariff_per_kwh_usd: Optional[float] = Field(default=None, ge=0)
+    peak_sun_hours: Optional[float] = Field(default=None, gt=0)
+    battery_kwh: float = Field(default=0.0, ge=0)
+    battery_price_per_kwh_usd: Optional[float] = Field(default=None, ge=0)
+    grid_type: str = "ongrid"
 
 
 class ProviderInfo(BaseModel):
@@ -56,6 +73,7 @@ class ProviderInfo(BaseModel):
 
 class ProcessRequest(BaseModel):
     preset_id: str = Field(..., examples=["residential_gable"])
+    assumptions: Optional[Assumptions] = None
 
 
 class LeadIn(BaseModel):
@@ -79,6 +97,7 @@ class RefineRequest(BaseModel):
     meters_per_pixel: float = Field(..., gt=0)
     sam_overbox: bool = True
     pitched: bool = True
+    assumptions: Optional[Assumptions] = None
 
 
 class RefineResponse(BaseModel):

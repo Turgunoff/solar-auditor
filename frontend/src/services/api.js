@@ -101,6 +101,12 @@ export async function refineLayout(payload) {
   return res.json()
 }
 
+export async function getAssumptionDefaults() {
+  const res = await fetch(`${BASE}/api/v1/assumptions/defaults`)
+  if (!res.ok) throw new Error(await parseError(res))
+  return res.json()
+}
+
 export async function submitLead(lead) {
   const res = await fetch(`${BASE}/api/v1/leads`, {
     method: 'POST',
