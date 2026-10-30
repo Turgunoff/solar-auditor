@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <header class="intro">
-      <p class="eyebrow">Product</p>
+      <p class="eyebrow">Product <span class="track-pill">Push the Frontier · Indie Track</span></p>
       <h1>How Solar Auditor works</h1>
       <p>
         Four steps from aerial image to a feasibility pack you can discuss with a customer.

@@ -38,7 +38,7 @@ function fmtDate(iso) {
   <div class="page">
     <header class="head">
       <div>
-        <p class="eyebrow">Workspace</p>
+        <p class="eyebrow">Workspace <span class="track-pill">Push the Frontier · Indie Track</span></p>
         <h1>Saved audits</h1>
         <p class="lead">Stored in your browser ({{ count }}). Re-open any audit in the engine.</p>
       </div>

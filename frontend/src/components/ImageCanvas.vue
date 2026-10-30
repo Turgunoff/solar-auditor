@@ -6,6 +6,9 @@ const props = defineProps({
   result: { type: Object, default: null },
   previewPreset: { type: Object, default: null },
   previewUrl: { type: String, default: '' },
+  showRoof: { type: Boolean, default: true },
+  showObstacles: { type: Boolean, default: true },
+  showPanels: { type: Boolean, default: true },
   drawMode: { type: Boolean, default: false },
   userBoxes: { type: Array, default: () => [] },
 })
@@ -96,7 +99,7 @@ function draw() {
   const seg = props.result.segmentation
   ctx.lineWidth = 2 / scale.value
 
-  for (const poly of seg.roof_polygons || []) {
+  for (const poly of (props.showRoof ? seg.roof_polygons || [] : [])) {
     if (!poly?.length) continue
     ctx.beginPath()
     poly.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)))
@@ -107,7 +110,7 @@ function draw() {
     ctx.stroke()
   }
 
-  for (const poly of seg.obstacles || []) {
+  for (const poly of (props.showObstacles ? seg.obstacles || [] : [])) {
     if (!poly?.length) continue
     ctx.beginPath()
     poly.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)))
@@ -143,7 +146,7 @@ function draw() {
     ctx.setLineDash([])
   }
 
-  const panels = props.result.layout?.panels || []
+  const panels = props.showPanels ? props.result.layout?.panels || [] : []
   for (const p of panels) {
     const rot = ((p.rotation || 0) * Math.PI) / 180
     ctx.save()

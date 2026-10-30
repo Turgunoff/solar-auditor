@@ -35,3 +35,18 @@ body {
 .card {
   @apply rounded-xl border border-slate-200 bg-white shadow-panel;
 }
+
+/* Shared engineering badge: hackathon track pill used across pages. */
+.track-pill {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 9999px;
+  padding: 0.15rem 0.65rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}

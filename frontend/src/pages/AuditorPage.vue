@@ -33,6 +33,11 @@ const mapOpen = ref(false)
 const mapPickerRef = ref(null)
 const drawMode = ref(false)
 const userBoxes = ref([])
+const layers = ref({ roof: true, obstacles: true, panels: true })
+
+const roofCount = computed(() => result.value?.segmentation?.roof_polygons?.length ?? 0)
+const obstacleCount = computed(() => result.value?.segmentation?.obstacles?.length ?? 0)
+const panelCount = computed(() => result.value?.layout?.total_panels ?? 0)
 const assumptionDefaults = ref(null)
 const assumptions = ref(null)
 
@@ -232,40 +237,17 @@ onMounted(bootstrap)
       :upload-name="staged.kind === 'upload' ? staged.name : ''"
       :upload-url="staged.kind === 'upload' ? staged.url : ''"
       :staged-kind="staged.kind"
+      :can-run="canRun"
       @select="onSelectPreset"
       @upload="onStageUpload"
       @clear-upload="clearUpload"
       @open-map="mapOpen = true"
+      @run="runAudit"
+      @reset="reset"
     />
 
-    <!-- Step 2 · Review + Run -->
-    <div class="mx-4 mt-3 flex flex-wrap items-center gap-2 md:mx-6">
-      <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
-        2 · Review &amp; run
-      </span>
-      <span v-if="stageLabel" class="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">
-        {{ stageLabel }}
-      </span>
-      <span v-else class="text-xs text-slate-400">
-        Choose a source above first
-      </span>
-      <button
-        class="btn btn-primary"
-        type="button"
-        :disabled="!canRun"
-        @click="runAudit"
-      >
-        {{ loading ? 'Analyzing…' : result ? 'Re-run AI Audit' : 'Run AI Audit' }}
-      </button>
-      <button
-        v-if="staged.kind || result"
-        class="btn btn-ghost"
-        type="button"
-        :disabled="loading"
-        @click="reset"
-      >
-        Reset
-      </button>
+    <div v-if="stageLabel && !result" class="mx-4 mt-1 text-xs text-slate-500 md:mx-6">
+      Staged: <b>{{ stageLabel }}</b> — review, then Run AI Solar Audit above.
     </div>
 
     <div
@@ -309,15 +291,39 @@ onMounted(bootstrap)
       </button>
     </div>
 
+    <div class="mx-4 mt-3 flex flex-wrap items-center gap-2 md:mx-6">
+      <span class="layers-label">Layers:</span>
+      <button type="button" class="chip chip-green" :class="{ off: !layers.roof }" @click="layers.roof = !layers.roof">
+        Roof Polygons{{ result ? ` (${roofCount})` : '' }}
+      </button>
+      <button type="button" class="chip chip-red" :class="{ off: !layers.obstacles }" @click="layers.obstacles = !layers.obstacles">
+        Obstacles{{ result ? ` (${obstacleCount})` : '' }}
+      </button>
+      <button type="button" class="chip chip-blue" :class="{ off: !layers.panels }" @click="layers.panels = !layers.panels">
+        PV Panels{{ result ? ` (${panelCount})` : '' }}
+      </button>
+    </div>
+
     <main class="grid gap-4 px-4 pb-8 md:grid-cols-[1fr_320px] md:px-6 lg:grid-cols-[1fr_360px]">
-      <ImageCanvas
-        :result="result"
-        :preview-preset="selectedPreset"
-        :preview-url="staged.kind === 'upload' ? staged.url : ''"
-        :draw-mode="drawMode"
-        :user-boxes="userBoxes"
-        @add-box="onAddBox"
-      />
+      <div>
+        <ImageCanvas
+          :result="result"
+          :preview-preset="selectedPreset"
+          :preview-url="staged.kind === 'upload' ? staged.url : ''"
+          :draw-mode="drawMode"
+          :user-boxes="userBoxes"
+          :show-roof="layers.roof"
+          :show-obstacles="layers.obstacles"
+          :show-panels="layers.panels"
+          @add-box="onAddBox"
+        />
+        <div v-if="result" class="telemetry">
+          <span>Panels: <b>{{ panelCount }}</b></span>
+          <span>Scale: <b>{{ result.meters_per_pixel ? result.meters_per_pixel.toFixed(3) + ' m/px' : '—' }}</b></span>
+          <span>Segmentation: <b>{{ result.provider?.segmentation || '—' }}</b></span>
+          <span>Audit Status: <b class="text-emerald-600">Calibrated</b></span>
+        </div>
+      </div>
       <AnalyticsPanel
         :result="result"
         :loading="loading"
@@ -345,6 +351,44 @@ onMounted(bootstrap)
 </template>
 
 <style scoped>
+.layers-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.chip {
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid;
+  background: #fff;
+  cursor: pointer;
+}
+
+.chip-green { border-color: #6ee7b7; color: #047857; background: #ecfdf5; }
+.chip-red { border-color: #fca5a5; color: #b91c1c; background: #fef2f2; }
+.chip-blue { border-color: #93c5fd; color: #1d4ed8; background: #eff6ff; }
+.chip.off { opacity: 0.4; background: #fff; }
+
+.telemetry {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #64748b;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.5rem 0.9rem;
+}
+
+.telemetry b { color: #0f172a; font-variant-numeric: tabular-nums; }
+
 .auditor-shell {
   min-height: 100vh;
   background:

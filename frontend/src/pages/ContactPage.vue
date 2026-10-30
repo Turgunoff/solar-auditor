@@ -37,7 +37,7 @@ async function submit() {
 <template>
   <div class="page">
     <header>
-      <p class="eyebrow">Contact</p>
+      <p class="eyebrow">Contact <span class="track-pill">Push the Frontier · Indie Track</span></p>
       <h1>Tell us about your rooftops</h1>
       <p class="lead">
         Installers, EPCs, and founders — if you want to pilot Solar Auditor on real sites, leave a note.

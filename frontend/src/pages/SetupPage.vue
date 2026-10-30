@@ -24,7 +24,7 @@ onMounted(() => load(false))
 <template>
   <div class="page">
     <header>
-      <p class="eyebrow">Integration</p>
+      <p class="eyebrow">Integration <span class="track-pill">Push the Frontier · Indie Track</span></p>
       <h1>API setup — mock today, Meta tomorrow</h1>
       <p class="lead">
         The product runs fully offline. When Meta Model API credentials arrive, flip three env vars —

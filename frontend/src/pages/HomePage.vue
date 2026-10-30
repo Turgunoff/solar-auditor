@@ -80,7 +80,7 @@ onUnmounted(() => {
       />
       <div class="hero-veil" aria-hidden="true" />
       <div class="hero-copy">
-        <p class="brand d1">Solar Auditor</p>
+        <p class="brand d1">Solar Auditor <span class="track-pill">Push the Frontier · Indie Track</span></p>
         <h1 class="d2">Rooftop photo in. Feasibility sketch out.</h1>
         <p class="sub d3">
           Segment the roof, keep clear of obstacles, pack modules, and export a first-pass plan —

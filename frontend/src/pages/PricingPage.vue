@@ -23,7 +23,7 @@ function scrollWaitlist() {
 <template>
   <div class="page">
     <header>
-      <p class="eyebrow">Early access</p>
+      <p class="eyebrow">Early access <span class="track-pill">Push the Frontier · Indie Track</span></p>
       <h1>Simple plans for a product you can keep shipping</h1>
       <p class="lead">
         Start free while you validate. Paid tiers unlock higher volume, team seats, and production Meta API usage.
