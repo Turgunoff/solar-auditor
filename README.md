@@ -49,7 +49,7 @@ Open http://localhost:5173 — Vite proxies `/api` and `/static` to the backend.
 4. Inspect green roof / red obstacles / blue panel grid on the canvas.
 5. Optional: **Draw exclusion zone** → **Place panels** to re-pack around your zones.
 6. Optional: **Estimate settings** — panel size/power, prices, tariff, battery, on/off-grid → **Recalculate**.
-7. Open **View 3D Visualization** and **Download PDF Report**.
+7. Open **Preview Concept Render** and **Download PDF Report**.
 8. Revisit audits under **Projects**.
 
 ## Meta API (live-first, mock fallback)

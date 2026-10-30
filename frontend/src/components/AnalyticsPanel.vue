@@ -193,7 +193,7 @@ const obstacleCount = computed(() => props.result?.segmentation?.obstacles?.leng
 
       <div class="mt-auto flex flex-col gap-2">
         <button class="btn btn-ghost w-full" type="button" @click="$emit('view-render')">
-          Preview 3D Spatial Mesh
+          Preview Concept Render
         </button>
         <button class="btn btn-primary w-full" type="button" @click="$emit('download-pdf')">
           Download PDF Engineering Report
