@@ -121,7 +121,7 @@ function draw() {
     ctx.beginPath()
     poly.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)))
     ctx.closePath()
-    ctx.fillStyle = 'rgba(16, 185, 129, 0.35)'
+    ctx.fillStyle = 'rgba(16, 185, 129, 0.20)'
     ctx.strokeStyle = '#10B981'
     ctx.fill()
     ctx.stroke()
@@ -132,7 +132,7 @@ function draw() {
     ctx.beginPath()
     poly.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)))
     ctx.closePath()
-    ctx.fillStyle = 'rgba(239, 68, 68, 0.4)'
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.16)'
     ctx.strokeStyle = '#EF4444'
     ctx.fill()
     ctx.stroke()
