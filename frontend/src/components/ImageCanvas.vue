@@ -39,21 +39,38 @@ function toImage(e) {
 async function loadImage(url) {
   return new Promise((resolve, reject) => {
     const img = new Image()
-    img.crossOrigin = 'anonymous'
+    // External previews (Google Static Maps) are display-only; same-origin
+    // result images keep CORS so the canvas stays clean.
+    if (!/^https?:\/\//i.test(url)) img.crossOrigin = 'anonymous'
     img.onload = () => resolve(img)
     img.onerror = reject
     img.src = assetUrl(url)
   })
 }
 
+function canvasHeight(width) {
+  return Math.max(360, Math.min(520, width * 0.5))
+}
+
 function fitImage() {
   const wrap = wrapRef.value
   if (!wrap || !imageObj.value) return
-  const pad = 24
-  const sx = (wrap.clientWidth - pad) / imageObj.value.width
-  const sy = (Math.max(420, wrap.clientWidth * 0.55) - pad) / imageObj.value.height
-  scale.value = Math.min(sx, sy, 1.2)
-  offset.value = { x: 12, y: 12 }
+  const w = wrap.clientWidth
+  const h = canvasHeight(w)
+  const pad = 64
+  const sx = (w - pad) / imageObj.value.width
+  const sy = (h - pad) / imageObj.value.height
+  scale.value = Math.max(0.05, Math.min(sx, sy, 1))
+  // Center the image with breathing room instead of filling the frame.
+  offset.value = {
+    x: (w - imageObj.value.width * scale.value) / 2,
+    y: (h - imageObj.value.height * scale.value) / 2,
+  }
+}
+
+function zoomBy(factor) {
+  scale.value = Math.min(4, Math.max(0.1, scale.value * factor))
+  draw()
 }
 
 function draw() {
@@ -63,7 +80,7 @@ function draw() {
   const ctx = canvas.getContext('2d')
   const dpr = window.devicePixelRatio || 1
   const w = wrap.clientWidth
-  const h = Math.max(420, Math.min(640, wrap.clientWidth * 0.55))
+  const h = canvasHeight(w)
   canvas.width = w * dpr
   canvas.height = h * dpr
   canvas.style.width = `${w}px`
@@ -291,5 +308,27 @@ onUnmounted(() => {
       <span class="rounded bg-white/85 px-2 py-1 text-sky-700">Panellar</span>
       <span class="rounded bg-white/85 px-2 py-1 text-slate-500">G'ildirak — masshtab · tortish — siljitish</span>
     </div>
+    <div v-if="imageObj" class="absolute bottom-3 right-3 flex items-center gap-1 text-[11px] font-bold">
+      <button type="button" class="zoom-btn" title="Kichraytirish" @click="zoomBy(0.8)">−</button>
+      <span class="rounded bg-white/85 px-2 py-1 text-slate-600">{{ Math.round(scale * 100) }}%</span>
+      <button type="button" class="zoom-btn" title="Kattalashtirish" @click="zoomBy(1.25)">+</button>
+      <button type="button" class="zoom-btn zoom-fit" title="Ekranga sig'dirish" @click="fitImage(); draw()">Sig'dirish</button>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.zoom-btn {
+  min-width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.zoom-btn:hover { background: #fff; border-color: #94a3b8; }
+.zoom-fit { padding: 0 8px; font-size: 10px; }
+</style>

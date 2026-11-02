@@ -16,6 +16,7 @@ import {
   processPreset,
   processUpload,
   refineLayout,
+  staticMapUrl,
 } from '../services/api'
 import { getProject, saveProject } from '../services/history'
 import { mapsConfigured } from '../services/googleMaps'
@@ -123,7 +124,9 @@ function clearUpload() {
 }
 
 function onStageMap({ lat, lng, zoom }) {
-  staged.value = { kind: 'map', id: '', name: '', url: '', file: null, coords: { lat, lng, zoom } }
+  const coords = { lat, lng, zoom }
+  // Preview the exact satellite crop so the user sees the roof before Run.
+  staged.value = { kind: 'map', id: '', name: '', url: staticMapUrl(coords), file: null, coords }
   clearOutcome()
   mapOpen.value = false
 }
@@ -390,7 +393,7 @@ onMounted(bootstrap)
         <ImageCanvas
           :result="result"
           :preview-preset="selectedPreset"
-          :preview-url="staged.kind === 'upload' ? staged.url : ''"
+          :preview-url="(staged.kind === 'upload' || staged.kind === 'map') ? staged.url : ''"
           :draw-mode="drawMode"
           :user-boxes="userBoxes"
           :show-roof="layers.roof"

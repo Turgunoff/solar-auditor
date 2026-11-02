@@ -49,17 +49,23 @@ export async function processUpload(file) {
   return res.json()
 }
 
-export async function processMap({ lat, lng, zoom }) {
-  // Fetch Static Maps in the browser so HTTP-referrer–restricted keys work.
+export function staticMapUrl({ lat, lng, zoom }) {
   const key = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
-  if (!key) throw new Error('VITE_GOOGLE_MAPS_API_KEY is empty')
-
-  const staticUrl =
+  return (
     'https://maps.googleapis.com/maps/api/staticmap' +
     `?center=${encodeURIComponent(`${lat},${lng}`)}` +
     `&zoom=${zoom}` +
     '&size=640x640&scale=2&maptype=satellite' +
     `&key=${encodeURIComponent(key)}`
+  )
+}
+
+export async function processMap(coords) {
+  // Fetch Static Maps in the browser so HTTP-referrer–restricted keys work.
+  const key = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
+  if (!key) throw new Error('VITE_GOOGLE_MAPS_API_KEY is empty')
+
+  const staticUrl = staticMapUrl(coords)
 
   const imgRes = await fetch(staticUrl)
   if (!imgRes.ok) {
@@ -72,6 +78,7 @@ export async function processMap({ lat, lng, zoom }) {
     }
     throw new Error(`Static Maps ${imgRes.status}: ${text.slice(0, 200) || imgRes.statusText}`)
   }
+  const { lat, lng, zoom } = coords
   const blob = await imgRes.blob()
   const form = new FormData()
   form.append('file', new File([blob], 'map-satellite.jpg', { type: blob.type || 'image/jpeg' }))

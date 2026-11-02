@@ -17,7 +17,8 @@ defineProps({
   <div>
     <header class="eng-topbar">
       <div class="flex items-center gap-2.5">
-        <RouterLink to="/" class="eng-logo" title="Back to site">★</RouterLink>
+        <RouterLink to="/" class="btn btn-ghost back-btn" title="Bosh sahifaga qaytish">← Orqaga</RouterLink>
+        <RouterLink to="/" class="eng-logo" title="Bosh sahifa">★</RouterLink>
         <div class="leading-tight">
           <h1>AI Rooftop Solar Auditor</h1>
           <p>v3.4-PRO</p>
@@ -65,6 +66,8 @@ defineProps({
 @media (min-width: 768px) {
   .eng-topbar { padding-left: 1.5rem; padding-right: 1.5rem; }
 }
+
+.back-btn { padding: 0.35rem 0.7rem; font-size: 0.78rem; white-space: nowrap; }
 
 .eng-logo {
   display: inline-flex;
