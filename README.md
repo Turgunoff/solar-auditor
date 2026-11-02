@@ -80,6 +80,9 @@ See `.env.example`. Important flags:
 | `RATE_LIMIT_PER_MINUTE` | `60` | Per-IP limit on process/lead endpoints |
 | `VITE_GOOGLE_MAPS_API_KEY` | empty | Optional map picker; needs Maps JS + **Places API (New)** + Geocoding + Static Maps on the key |
 
+Muse concept is fed a panels-only guide (no green roof wash) so it photorealizes
+the layout grid instead of inventing a new scene. Trust the layout overlay for BOM.
+
 ## API (`/api/v1`)
 
 - `GET /api/v1/health`, `GET /api/v1/status?probe=true`

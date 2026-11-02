@@ -193,8 +193,11 @@ def place_panels(
     pitched=False skips the south-half cut for flat roofs, where every
     orientation is usable.
     mask_outlines=True means the polygons are decoded SAM mask outlines,
-    not inflated AABBs — shrink and obstacle keepout use plain setback
-    while the south-half cut still applies for pitched roofs.
+    not inflated AABBs — roof shrink uses plain setback (not 20% AABB
+    erosion) while the south-half cut still applies for pitched roofs.
+    Obstacle keepout stays fat whenever sam_overbox is on (HVAC/trees),
+    independent of mask_outlines — tying it to gentle roof shrink let
+    panels crowd equipment after the mask-aware change.
     """
     # True masks need only setback erosion, not AABB overbox handling.
     aggressive = sam_overbox and not mask_outlines
@@ -238,11 +241,12 @@ def place_panels(
             continue
         obstacle_polys.append(poly)
 
-    # Trees / courtyards need a fat keep-out so AABB packing doesn't fill yards
+    # Trees / HVAC / courtyards need a fat keep-out so packing doesn't crowd them.
+    # Use sam_overbox (live SAM), not aggressive/mask — masks are about roof shape.
     blocked = None
     if obstacle_polys:
         keepout = (
-            max(setback_px * 2.5, panel_w * 0.6) if aggressive else setback_px
+            max(setback_px * 2.5, panel_w * 0.6) if sam_overbox else setback_px
         )
         blocked = unary_union(obstacle_polys).buffer(keepout)
 
@@ -333,7 +337,7 @@ def usable_area_m2(
     obs = [_to_polygon(p) for p in obstacles]
     obs = [o for o in obs if o is not None and o.area < roof_union.area * 0.85]
     panel_w = settings.panel_width_m / meters_per_pixel
-    keepout = max(setback_px * 2.5, panel_w * 0.6) if aggressive else setback_px
+    keepout = max(setback_px * 2.5, panel_w * 0.6) if sam_overbox else setback_px
     if obs:
         usable = roof_union.difference(unary_union(obs).buffer(keepout))
     else:

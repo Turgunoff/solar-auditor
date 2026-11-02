@@ -239,11 +239,12 @@ class MetaModelClient:
         file_id = self.upload_file(image_path)
         if photorealize_layout:
             prompt = (
-                "This aerial already has the approved solar layout drawn as blue "
-                f"rectangles ({panel_count} PV modules). Photorealize ONLY those modules "
-                "into realistic framed solar panels. Do NOT add, remove, move, or resize "
-                "panels. Do NOT put panels on other roofs, trees, yards, or roads. "
-                "Keep the same camera, building outlines, and module grid. "
+                "SAME top-down satellite photo — do not change camera, zoom, tilt, "
+                "building footprints, parking lots, roads, or trees. "
+                f"Replace each of the {panel_count} blue rectangles with a realistic "
+                "dark framed PV module in the exact same pixel position and size. "
+                "Do not invent a new scene, oblique view, pond, tennis court, or facade. "
+                "Do not add/remove/move modules. Photorealize the blue grid only. "
                 f"{roof_hint}"
             ).strip()
         else:

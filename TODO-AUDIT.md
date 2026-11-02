@@ -152,3 +152,8 @@ uchidan-ucchegacha tasdiqlanmagan.
       da eski Places endi ko'rinmaydi). `PlaceAutocompleteElement` +
       `importLibrary('places')` ga o'tkazildi; kalitda **Places API (New)**
       restriction bo'lishi shart.
+- [x] Mask-aware keepout + Muse guide (2026-11-02): `mask_outlines` yumshoq
+      tom shrink bilan HVAC keepout ham `setback` ga tushib, panellar
+      uskunaga yaqinlashgan; Muse ga yashil tom fill berilganda yangi
+      sahna (hovuz/tennis) uydirilgan. Keepout yana `sam_overbox` ga
+      bog'landi; Muse guide — faqat ko'k panellar; prompt qattiqlashtirildi.

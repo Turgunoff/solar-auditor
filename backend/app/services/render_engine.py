@@ -21,16 +21,23 @@ def draw_layout_overlay(
     panels: List[Panel],
     roof_polygons: Sequence[Sequence[Point]],
     out_path: Path,
+    *,
+    draw_roof: bool = True,
 ) -> Path:
-    """Deterministic aerial + packed modules (source of truth for BOM visuals)."""
+    """Deterministic aerial + packed modules (source of truth for BOM visuals).
+
+    draw_roof=False skips the green roof wash — Muse photorealize gets only
+    blue module rectangles so it does not reinvent parks/ponds from the tint.
+    """
     img = Image.open(image_path).convert("RGBA")
     overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay, "RGBA")
 
-    for poly in roof_polygons:
-        if len(poly) >= 3:
-            draw.polygon([(p[0], p[1]) for p in poly], outline=(16, 185, 129, 220), width=3)
-            draw.polygon([(p[0], p[1]) for p in poly], fill=(16, 185, 129, 36))
+    if draw_roof:
+        for poly in roof_polygons:
+            if len(poly) >= 3:
+                draw.polygon([(p[0], p[1]) for p in poly], outline=(16, 185, 129, 220), width=3)
+                draw.polygon([(p[0], p[1]) for p in poly], fill=(16, 185, 129, 36))
 
     for panel in panels:
         cx, cy = panel.x, panel.y
@@ -121,9 +128,16 @@ class MuseImageRenderEngine:
         draw_layout_overlay(image_path, panels, roof_polygons, layout_path)
         layout_url = f"/static/renders/{layout_name}"
 
+        # Muse input: panels only (no green roof wash) — green tint made Muse
+        # invent grass/ponds/tennis courts instead of photorealizing modules.
+        muse_guide = self.settings.renders_dir / f"{project_id}_muse_guide.jpg"
+        draw_layout_overlay(
+            image_path, panels, roof_polygons, muse_guide, draw_roof=False,
+        )
+
         try:
             image_bytes = self.client.render_rooftop_with_panels(
-                str(layout_path),  # feed laid-out aerial so Muse follows BOM
+                str(muse_guide),
                 panel_count=len(panels),
                 roof_hint=_roof_hint(roof_polygons, len(panels)),
                 photorealize_layout=True,
