@@ -3,6 +3,14 @@ from __future__ import annotations
 from app.api.schemas import AnalyticsResult, Assumptions
 from app.core.config import Settings
 
+# Illustrative regional defaults (editable in Estimate settings; not
+# measured irradiance or an official tariff schedule).
+REGION_PRESETS: dict[str, dict[str, float]] = {
+    "uzbekistan": {"peak_sun_hours": 1550.0, "tariff_per_kwh_usd": 0.05},
+    "us_southwest": {"peak_sun_hours": 1750.0, "tariff_per_kwh_usd": 0.15},
+    "eu_central": {"peak_sun_hours": 1050.0, "tariff_per_kwh_usd": 0.30},
+}
+
 
 def resolve_settings(settings: Settings, assumptions: Assumptions | None) -> Settings:
     """Copy settings with per-audit overrides; validates grid/battery combo."""
@@ -12,7 +20,15 @@ def resolve_settings(settings: Settings, assumptions: Assumptions | None) -> Set
         raise ValueError("grid_type must be 'ongrid' or 'offgrid'")
     if assumptions.grid_type == "offgrid" and assumptions.battery_kwh <= 0:
         raise ValueError("offgrid systems need battery_kwh > 0")
+    region = (assumptions.region or "global").strip().lower()
+    if region not in ("global", *REGION_PRESETS):
+        raise ValueError(f"unknown region: {assumptions.region!r}")
     update = {}
+    if region in REGION_PRESETS:
+        # Region fills sun/tariff only where the user did not override.
+        for field, value in REGION_PRESETS[region].items():
+            if getattr(assumptions, field) is None:
+                update[field] = value
     for field in (
         "panel_kw",
         "panel_width_m",
@@ -37,6 +53,7 @@ def compute_analytics(
 ) -> AnalyticsResult:
     eff = resolve_settings(settings, assumptions)
     grid = assumptions.grid_type if assumptions else "ongrid"
+    region = (assumptions.region or "global").strip().lower() if assumptions else "global"
     battery_kwh = round(assumptions.battery_kwh, 2) if assumptions else 0.0
 
     capacity = round(panel_count * eff.panel_kw, 2)
@@ -57,4 +74,5 @@ def compute_analytics(
         battery_kwh=battery_kwh,
         battery_cost_usd=battery_cost,
         grid_type=grid,
+        region=region,
     )

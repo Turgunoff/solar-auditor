@@ -49,6 +49,7 @@ class AnalyticsResult(BaseModel):
     battery_kwh: float = 0.0
     battery_cost_usd: float = 0.0
     grid_type: str = "ongrid"
+    region: str = "global"
 
 
 class Assumptions(BaseModel):
@@ -63,6 +64,7 @@ class Assumptions(BaseModel):
     battery_kwh: float = Field(default=0.0, ge=0)
     battery_price_per_kwh_usd: Optional[float] = Field(default=None, ge=0)
     grid_type: str = "ongrid"
+    region: Optional[str] = Field(default=None, max_length=40)
 
 
 class ProviderInfo(BaseModel):

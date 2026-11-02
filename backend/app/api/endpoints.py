@@ -523,6 +523,8 @@ def refine_layout(body: RefineRequest) -> RefineResponse:
 @router.get("/assumptions/defaults")
 def assumptions_defaults() -> dict:
     """Current server defaults so the UI edits from real numbers."""
+    from app.services.analytics import REGION_PRESETS
+
     s = get_settings()
     return {
         "panel_kw": s.panel_kw,
@@ -532,6 +534,7 @@ def assumptions_defaults() -> dict:
         "tariff_per_kwh_usd": s.tariff_per_kwh_usd,
         "peak_sun_hours": s.peak_sun_hours,
         "battery_price_per_kwh_usd": s.battery_price_per_kwh_usd,
+        "regions": REGION_PRESETS,
     }
 
 
