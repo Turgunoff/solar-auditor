@@ -195,9 +195,8 @@ def place_panels(
     mask_outlines=True means the polygons are decoded SAM mask outlines,
     not inflated AABBs — roof shrink uses plain setback (not 20% AABB
     erosion) while the south-half cut still applies for pitched roofs.
-    Obstacle keepout stays fat whenever sam_overbox is on (HVAC/trees),
-    independent of mask_outlines — tying it to gentle roof shrink let
-    panels crowd equipment after the mask-aware change.
+    Obstacle keepout: fat for AABB overbox mode; medium for true mask
+    outlines (equipment clearance without the 988→500 panel density crash).
     """
     # True masks need only setback erosion, not AABB overbox handling.
     aggressive = sam_overbox and not mask_outlines
@@ -241,13 +240,15 @@ def place_panels(
             continue
         obstacle_polys.append(poly)
 
-    # Trees / HVAC / courtyards need a fat keep-out so packing doesn't crowd them.
-    # Use sam_overbox (live SAM), not aggressive/mask — masks are about roof shape.
+    # Trees / HVAC keep-out: fat for inflated AABB mode; medium for true masks.
     blocked = None
     if obstacle_polys:
-        keepout = (
-            max(setback_px * 2.5, panel_w * 0.6) if sam_overbox else setback_px
-        )
+        if aggressive:
+            keepout = max(setback_px * 2.5, panel_w * 0.6)
+        elif sam_overbox:
+            keepout = max(setback_px * 1.6, panel_w * 0.35)
+        else:
+            keepout = setback_px
         blocked = unary_union(obstacle_polys).buffer(keepout)
 
     panels: List[Panel] = []
@@ -337,7 +338,12 @@ def usable_area_m2(
     obs = [_to_polygon(p) for p in obstacles]
     obs = [o for o in obs if o is not None and o.area < roof_union.area * 0.85]
     panel_w = settings.panel_width_m / meters_per_pixel
-    keepout = max(setback_px * 2.5, panel_w * 0.6) if sam_overbox else setback_px
+    if aggressive:
+        keepout = max(setback_px * 2.5, panel_w * 0.6)
+    elif sam_overbox:
+        keepout = max(setback_px * 1.6, panel_w * 0.35)
+    else:
+        keepout = setback_px
     if obs:
         usable = roof_union.difference(unary_union(obs).buffer(keepout))
     else:

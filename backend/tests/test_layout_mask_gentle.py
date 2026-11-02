@@ -33,8 +33,8 @@ def test_mask_flat_covers_full_roof():
     assert flat.total_panels > pitched.total_panels
 
 
-def test_mask_outlines_keep_fat_obstacle_keepout():
-    """Gentle roof shrink must not weaken HVAC/tree keepout (regression 2026-11-02)."""
+def test_mask_outlines_medium_obstacle_keepout():
+    """Mask mode uses medium HVAC keepout — clears gear, keeps density."""
     from shapely.geometry import Point, box
 
     s = Settings(use_mock=True)
@@ -52,8 +52,7 @@ def test_mask_outlines_keep_fat_obstacle_keepout():
     assert gentle.total_panels < free.total_panels
     setback_px = s.setback_m / mpp
     panel_w = s.panel_width_m / mpp
-    fat = max(setback_px * 2.5, panel_w * 0.6)
-    # Centroids must stay outside ~90% of the fat keepout (not mere setback).
-    forbidden = box(160, 70, 240, 130).buffer(fat * 0.9)
+    medium = max(setback_px * 1.6, panel_w * 0.35)
+    forbidden = box(160, 70, 240, 130).buffer(medium * 0.85)
     for p in gentle.panels:
         assert not forbidden.contains(Point(p.x, p.y)), p
