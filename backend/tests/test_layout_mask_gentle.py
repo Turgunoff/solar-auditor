@@ -33,6 +33,23 @@ def test_mask_flat_covers_full_roof():
     assert flat.total_panels > pitched.total_panels
 
 
+def test_mask_flat_uses_envelope_when_mask_is_partial():
+    """Incomplete flat mask still packs the warehouse rectangle."""
+    s = Settings(use_mock=True)
+    # L-shaped mask missing the right strip of a 300×120 flat roof
+    l_mask = [[(0, 0), (300, 0), (300, 60), (200, 60), (200, 120), (0, 120)]]
+    partial_pack = place_panels(
+        l_mask, [], 300, 120, 0.05, s,
+        sam_overbox=True, pitched=False, mask_outlines=True,
+    )
+    full = place_panels(
+        [[(0, 0), (300, 0), (300, 120), (0, 120)]], [], 300, 120, 0.05, s,
+        sam_overbox=True, pitched=False, mask_outlines=True,
+    )
+    # Envelope fill should recover nearly full-rectangle density
+    assert partial_pack.total_panels >= full.total_panels * 0.9
+
+
 def test_mask_outlines_medium_obstacle_keepout():
     """Mask mode uses medium HVAC keepout — clears gear, keeps density."""
     from shapely.geometry import Point, box

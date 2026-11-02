@@ -257,6 +257,14 @@ def place_panels(
     for roof in roofs:
         if aggressive:
             usable = _shrink_sam_overbox(roof, meters_per_pixel, setback_px)
+        elif mask_outlines and not pitched:
+            # Flat commercial: true SAM masks often omit a membrane strip on
+            # one side. Pack the oriented envelope (AABB-era full coverage)
+            # while obstacles still punch HVAC holes.
+            env = roof.minimum_rotated_rectangle
+            usable = env.buffer(-setback_px) if setback_px > 0 else env
+            if usable.is_empty:
+                usable = env
         else:
             usable = roof.buffer(-setback_px) if setback_px > 0 else roof
             if usable.is_empty:
@@ -326,6 +334,8 @@ def usable_area_m2(
             roofs = [_shrink_sam_overbox(r, meters_per_pixel, setback_px) for r in roofs]
         if pitched:
             roofs = [sun_facing_region(r, meters_per_pixel) for r in roofs]
+    if mask_outlines and not pitched:
+        roofs = [r.minimum_rotated_rectangle for r in roofs]
     if not aggressive:
         shrunk = [
             r.buffer(-setback_px) if setback_px > 0 else r for r in roofs
