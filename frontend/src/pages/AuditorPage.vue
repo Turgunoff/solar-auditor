@@ -19,6 +19,7 @@ import {
 } from '../services/api'
 import { getProject, saveProject } from '../services/history'
 import { mapsConfigured } from '../services/googleMaps'
+import { friendlyError } from '../services/friendlyError'
 
 const route = useRoute()
 const mode = ref('mock')
@@ -34,6 +35,8 @@ const mapPickerRef = ref(null)
 const drawMode = ref(false)
 const userBoxes = ref([])
 const layers = ref({ roof: true, obstacles: true, panels: true })
+
+const friendly = computed(() => (error.value ? friendlyError(error.value) : null))
 
 const roofCount = computed(() => result.value?.segmentation?.roof_polygons?.length ?? 0)
 const obstacleCount = computed(() => result.value?.segmentation?.obstacles?.length ?? 0)
@@ -251,10 +254,33 @@ onMounted(bootstrap)
     </div>
 
     <div
-      v-if="error"
-      class="mx-4 mb-3 mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 md:mx-6"
+      v-if="friendly"
+      class="mx-4 mb-3 mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800 md:mx-6"
+      role="alert"
     >
-      {{ error }}
+      <p class="font-bold">{{ friendly.title }}</p>
+      <p class="mt-0.5">{{ friendly.hint }}</p>
+      <p v-if="friendly.raw && friendly.raw !== friendly.title" class="mt-1 text-xs text-rose-500">{{ friendly.raw }}</p>
+      <div class="mt-2 flex flex-wrap gap-2">
+        <button class="btn btn-ghost" type="button" @click="error = ''">Yopish</button>
+        <button
+          v-if="presets.length"
+          class="btn btn-ghost"
+          type="button"
+          @click="error = ''; onSelectPreset(presets[0].id)"
+        >
+          Preset 1 dan boshlash
+        </button>
+      </div>
+    </div>
+
+    <div
+      v-if="result && panelCount === 0"
+      class="mx-4 mb-3 mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 md:mx-6"
+      role="status"
+    >
+      <b>0 ta panel joylashdi.</b> Tom maydoni juda kichik yoki to'siqlar bilan yopilgan bo'lishi mumkin.
+      Kattaroq kesma yuklang, exclusion zonalarni tozalang yoki presetda sinab ko'ring.
     </div>
 
     <!-- Step 3 · Refine (after analysis) -->

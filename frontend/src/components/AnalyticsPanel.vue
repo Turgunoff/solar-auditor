@@ -27,8 +27,23 @@ function openForm() {
     grid_type: 'ongrid',
     battery_kwh: 0,
     battery_price_per_kwh_usd: props.defaults.battery_price_per_kwh_usd,
+    region: 'global',
   }
   formOpen.value = true
+}
+
+const REGION_LABELS = {
+  global: 'Global (server defaults)',
+  uzbekistan: 'Uzbekistan',
+  us_southwest: 'US Southwest',
+  eu_central: 'EU Central',
+}
+
+function onRegionChange() {
+  const preset = props.defaults?.regions?.[form.value.region]
+  if (!preset) return
+  form.value.peak_sun_hours = preset.peak_sun_hours
+  form.value.tariff_per_kwh_usd = preset.tariff_per_kwh_usd
 }
 
 function applyForm() {
@@ -43,6 +58,7 @@ function applyForm() {
     grid_type: form.value.grid_type,
     battery_kwh: +form.value.battery_kwh || 0,
     battery_price_per_kwh_usd: +form.value.battery_price_per_kwh_usd,
+    region: form.value.region || 'global',
   })
 }
 
@@ -68,6 +84,13 @@ const panelWatts = computed(() => {
 })
 
 const obstacleCount = computed(() => props.result?.segmentation?.obstacles?.length ?? null)
+
+// Illustrative grid factor (kg CO2 per kWh) — estimate only, not a credit.
+const co2TonnesPerYear = computed(() => {
+  const kwh = props.result?.analytics?.annual_generation_kwh
+  if (!kwh) return null
+  return (kwh * 0.55) / 1000
+})
 </script>
 
 <template>
@@ -136,7 +159,9 @@ const obstacleCount = computed(() => props.result?.segmentation?.obstacles?.leng
         <dl class="specs">
           <div><dt>PV Module</dt><dd>{{ panelWatts ?? '—' }} W · {{ fmt(result.analytics.usable_area_m2 && result.layout.total_panels ? result.analytics.usable_area_m2 / result.layout.total_panels : null, 1) }} m²/panel</dd></div>
           <div><dt>Usable Roof Area</dt><dd>{{ fmt(result.analytics.usable_area_m2, 1) }} m²</dd></div>
+          <div v-if="co2TonnesPerYear != null"><dt>CO₂ avoided (est.)</dt><dd>{{ fmt(co2TonnesPerYear, 1) }} t/yr</dd></div>
           <div><dt>Grid Mode</dt><dd>{{ result.analytics.grid_type === 'offgrid' ? 'Off-grid' : 'On-grid' }}{{ result.analytics.battery_kwh ? ` · ${result.analytics.battery_kwh} kWh battery` : '' }}</dd></div>
+          <div v-if="result.analytics.region && result.analytics.region !== 'global'"><dt>Region preset</dt><dd>{{ REGION_LABELS[result.analytics.region] || result.analytics.region }}</dd></div>
         </dl>
         <button
           class="specs-toggle"
@@ -147,6 +172,11 @@ const obstacleCount = computed(() => props.result?.segmentation?.obstacles?.leng
           <span>{{ formOpen ? 'Hide' : 'Edit' }}</span>
         </button>
         <div v-if="formOpen && form" class="mt-2 grid grid-cols-2 gap-2 text-[11px]">
+          <label class="fld">Region
+            <select v-model="form.region" @change="onRegionChange">
+              <option v-for="(label, key) in REGION_LABELS" :key="key" :value="key">{{ label }}</option>
+            </select>
+          </label>
           <label class="fld">Panel, W
             <input v-model.number="form.panel_w" type="number" min="1" />
           </label>
