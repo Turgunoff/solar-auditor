@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import Header from '../components/Header.vue'
 import Presets from '../components/Presets.vue'
@@ -38,6 +38,33 @@ const userBoxes = ref([])
 const layers = ref({ roof: true, obstacles: true, panels: true })
 
 const friendly = computed(() => (error.value ? friendlyError(error.value) : null))
+
+// Full-stage "AI is working" animation for the first audit run only
+// (refine keeps the existing result on screen instead).
+const GEN_STEPS = [
+  'Tom chegarasi aniqlanmoqda · SAM 3.1',
+  'To‘siqlar belgilanmoqda',
+  'Panellar joylanmoqda',
+  'Hisobot va render tayyorlanmoqda · Muse',
+]
+const genStep = ref(0)
+let genTimer = null
+
+watch(loading, (on) => {
+  if (on && !result.value) {
+    genStep.value = 0
+    genTimer = setInterval(() => {
+      genStep.value = Math.min(genStep.value + 1, GEN_STEPS.length - 1)
+    }, 2600)
+  } else if (genTimer) {
+    clearInterval(genTimer)
+    genTimer = null
+  }
+})
+
+onUnmounted(() => {
+  if (genTimer) clearInterval(genTimer)
+})
 
 const roofCount = computed(() => result.value?.segmentation?.roof_polygons?.length ?? 0)
 const obstacleCount = computed(() => result.value?.segmentation?.obstacles?.length ?? 0)
@@ -288,13 +315,40 @@ onMounted(bootstrap)
       <b>AI Auditni boshlash</b> tugmasini bosing.
     </div>
 
-    <div v-if="loading" class="loading-note" role="status">
+    <div v-if="loading && result" class="loading-note" role="status">
       <span class="spinner" aria-hidden="true" />
-      <span>
-        <b>AI ishlamoqda.</b>
-        Tom aniqlanmoqda → panellar joylanmoqda → hisobot tayyorlanmoqda.
-        Jonli rejimda odatda 30–60 soniya.
-      </span>
+      <span><b>Qayta hisoblanmoqda…</b></span>
+    </div>
+
+    <div v-if="loading && !result" class="gen-stage" role="status" aria-live="polite">
+      <div class="gen-visual" aria-hidden="true">
+        <span class="gen-ring r1" />
+        <span class="gen-ring r2" />
+        <span class="gen-ring r3" />
+        <svg class="gen-roof" viewBox="0 0 120 90" fill="none">
+          <path d="M14 52 L60 18 L106 52" stroke="#0f766e" stroke-width="5" stroke-linecap="round" />
+          <g fill="#2563eb">
+            <rect x="34" y="56" width="16" height="11" rx="1.5" />
+            <rect x="53" y="56" width="16" height="11" rx="1.5" />
+            <rect x="72" y="56" width="16" height="11" rx="1.5" />
+            <rect x="34" y="70" width="16" height="11" rx="1.5" />
+            <rect x="53" y="70" width="16" height="11" rx="1.5" />
+            <rect x="72" y="70" width="16" height="11" rx="1.5" />
+          </g>
+        </svg>
+        <span class="gen-scan" />
+      </div>
+      <p class="gen-title">AI tahlil qilmoqda<span class="gen-dots"><i>.</i><i>.</i><i>.</i></span></p>
+      <p class="gen-step" :key="genStep">{{ GEN_STEPS[genStep] }}</p>
+      <div class="gen-progress" aria-hidden="true">
+        <span
+          v-for="(s, i) in GEN_STEPS"
+          :key="s"
+          class="gen-seg"
+          :class="{ on: i <= genStep }"
+        />
+      </div>
+      <p class="gen-hint">Jonli rejimda odatda 30–60 soniya. Sahifani yopmang.</p>
     </div>
 
     <div v-if="result && !loading" class="result-banner" role="status">
@@ -375,7 +429,7 @@ onMounted(bootstrap)
       </button>
     </div>
 
-    <div class="mx-4 mt-3 flex flex-wrap items-center gap-2 md:mx-6">
+    <div v-if="!(loading && !result)" class="mx-4 mt-3 flex flex-wrap items-center gap-2 md:mx-6">
       <span class="layers-label">Qatlamlar:</span>
       <button type="button" class="chip chip-green" :class="{ off: !layers.roof }" @click="layers.roof = !layers.roof">
         Tom{{ result ? ` (${roofCount})` : '' }}
@@ -388,7 +442,7 @@ onMounted(bootstrap)
       </button>
     </div>
 
-    <main class="grid gap-4 px-4 pb-8 md:grid-cols-[1fr_320px] md:px-6 lg:grid-cols-[1fr_360px]">
+    <main v-if="!(loading && !result)" class="grid gap-4 px-4 pb-8 md:grid-cols-[1fr_320px] md:px-6 lg:grid-cols-[1fr_360px]">
       <div>
         <ImageCanvas
           :result="result"
@@ -554,6 +608,120 @@ onMounted(bootstrap)
 
 .result-main b { color: #86efac; }
 .result-actions { display: flex; gap: 0.5rem; }
+
+.gen-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 430px;
+  margin: 0.75rem 1rem 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .gen-stage { margin-left: 1.5rem; margin-right: 1.5rem; }
+}
+
+.gen-visual {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 1.1rem;
+}
+
+.gen-roof { width: 104px; height: auto; position: relative; z-index: 2; }
+
+.gen-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid #6ee7b7;
+  opacity: 0;
+  animation: gen-pulse 2.4s ease-out infinite;
+}
+
+.gen-ring.r2 { animation-delay: 0.8s; }
+.gen-ring.r3 { animation-delay: 1.6s; }
+
+@keyframes gen-pulse {
+  0% { transform: scale(0.55); opacity: 0.7; }
+  70% { opacity: 0.15; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+.gen-scan {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  height: 3px;
+  border-radius: 9999px;
+  background: #14b8a6;
+  box-shadow: 0 0 12px rgba(20, 184, 166, 0.8);
+  animation: gen-scan 2.2s ease-in-out infinite alternate;
+  z-index: 3;
+}
+
+@keyframes gen-scan {
+  from { top: 22%; }
+  to { top: 76%; }
+}
+
+.gen-title { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0; }
+
+.gen-dots i {
+  font-style: normal;
+  animation: gen-blink 1.2s infinite;
+}
+
+.gen-dots i:nth-child(2) { animation-delay: 0.2s; }
+.gen-dots i:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes gen-blink {
+  0%, 60%, 100% { opacity: 0.15; }
+  30% { opacity: 1; }
+}
+
+.gen-step {
+  margin: 0.45rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f766e;
+  animation: gen-fade 0.5s ease both;
+}
+
+@keyframes gen-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+.gen-progress {
+  display: flex;
+  gap: 6px;
+  margin-top: 1rem;
+}
+
+.gen-seg {
+  width: 44px;
+  height: 5px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  transition: background 0.4s ease;
+}
+
+.gen-seg.on { background: #16a34a; }
+
+.gen-hint { margin: 0.8rem 0 0; font-size: 0.78rem; color: #94a3b8; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gen-ring, .gen-scan, .gen-dots i, .gen-step { animation: none; }
+}
 
 .layers-label {
   font-size: 0.68rem;
