@@ -98,7 +98,7 @@ panels on arbitrary content.
 ## Tests
 
 ```bash
-cd backend && ../.venv/bin/python -m pytest tests -q   # 45 tests
+cd backend && ../.venv/bin/python -m pytest tests -q   # 56 tests, Python 3.11
 cd frontend && npm test                                 # vitest
 ```
 

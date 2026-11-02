@@ -10,7 +10,7 @@ This project is **fully runnable offline** with mocks. Live Meta models plug in 
 | Shapely layout + ROI math | Done |
 | Mock SAM / Muse Image / Muse text | Done |
 | Live `MetaModelClient` (files + responses, injectable transport) | Done |
-| SAM 3.1 segmentation | Live (empty on synthetic samples → mock fallback) |
+| SAM 3.1 segmentation | Live — true mask outlines decoded via `meta-sam-parser` (boxes only as fallback) |
 | Fail-closed uploads | Live SAM miss on non-preset image → 422, no generic panels |
 | Flat vs pitched | Presets carry `pitched`; flat skips the south-half cut |
 | Muse Image 1.0 render | Live (`image_generation_call.result` → JPEG) |

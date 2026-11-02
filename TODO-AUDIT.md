@@ -135,3 +135,9 @@ uchidan-ucchegacha tasdiqlanmagan.
       ustun) + loyiha disk-persist (restartda PDF saqlanadi) + do'stona
       xato xabarlari qo'shildi; testlar: `test_region_presets.py`,
       `test_store_persist.py`, `friendlyError.test.js`.
+- [x] SAM maskalari ulandi (2026-10-31): ilgari faqat AABB qutilar ishlatilib,
+      qiyshiq binolarda panellar hovli/daraxtga chiqib ketardi. Endi
+      `meta-sam-parser==0.1.0` (Python 3.11) bilan haqiqiy maska konturi
+      dekodlanadi (`sam_parse.masks_to_polygons`, test: `test_sam_masks.py`).
+      Jonli tasdiq: uzun qiyshiq binoda panellar tom o'qi bo'ylab, tomdan
+      chiqmasdan joylashdi; presetlar jonli PASS (49/56/216).

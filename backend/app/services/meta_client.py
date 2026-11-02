@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import httpx
 
 from app.core.config import Settings
-from app.services.sam_parse import boxes_to_polygons, extract_output_text
+from app.services.sam_parse import extract_output_text, masks_to_polygons
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +163,7 @@ class MetaModelClient:
         }
         data = self._responses_create(body)
         text = extract_output_text(data)
-        return boxes_to_polygons(text)
+        return masks_to_polygons(text)
 
     def segment_rooftop(
         self,
