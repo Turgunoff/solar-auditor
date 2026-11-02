@@ -280,11 +280,13 @@ def process_map(body: MapCaptureRequest) -> ProcessResponse:
 
     scale = 2
     size = body.size
+    # 4:3 landscape crop (matches browser fetch) — fills wide screens better
+    # than a square while keeping the building centered.
     url = (
         "https://maps.googleapis.com/maps/api/staticmap"
         f"?center={body.lat},{body.lng}"
         f"&zoom={body.zoom}"
-        f"&size={size}x{size}"
+        f"&size={size}x{max(1, size * 3 // 4)}"
         f"&scale={scale}"
         f"&maptype=satellite"
         f"&key={key}"

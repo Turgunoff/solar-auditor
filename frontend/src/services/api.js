@@ -55,7 +55,7 @@ export function staticMapUrl({ lat, lng, zoom }) {
     'https://maps.googleapis.com/maps/api/staticmap' +
     `?center=${encodeURIComponent(`${lat},${lng}`)}` +
     `&zoom=${zoom}` +
-    '&size=640x640&scale=2&maptype=satellite' +
+    '&size=640x480&scale=2&maptype=satellite' +
     `&key=${encodeURIComponent(key)}`
   )
 }
