@@ -75,17 +75,27 @@ def _raster_to_polygon(raster: bytes, width: int, height: int, ox: float, oy: fl
 
 
 def masks_to_polygons(sam_text: str) -> List[Polygon]:
+    """Masks decoded where possible; box rectangles otherwise."""
+    return masks_to_polygons_with_meta(sam_text)[0]
+
+
+def masks_to_polygons_with_meta(sam_text: str) -> tuple[List[Polygon], bool]:
     """
     Pair each SAM box with its following mask token, decode the mask
     (meta-sam-parser) and return the true outline in image pixel space.
     Records without a decodable mask fall back to their box rectangle.
+
+    Returns (polygons, used_mask) — used_mask is True when at least one
+    record decoded from a real mask, so layout can skip AABB overbox
+    erosion designed for inflated rectangles.
     """
     try:
         from meta_sam_parser import SegmentationMask, decode_mask_to_raster
     except Exception:
-        return boxes_to_polygons(sam_text)
+        return boxes_to_polygons(sam_text), False
 
     polys: List[Polygon] = []
+    used_mask = False
     pending_box: tuple[float, float, float, float] | None = None
     for kind, body in _TOKEN_RE.findall(sam_text or ""):
         if kind == "box":
@@ -121,6 +131,10 @@ def masks_to_polygons(sam_text: str) -> List[Polygon]:
                 )
             except Exception:
                 poly = None
+        if poly:
+            used_mask = True
         polys.append(poly if poly else [(x1, y1), (x2, y1), (x2, y2), (x1, y2)])
     # Boxes that never got a mask still count (defensive; SAM pairs them).
-    return polys if polys else boxes_to_polygons(sam_text)
+    if not polys:
+        return boxes_to_polygons(sam_text), False
+    return polys, used_mask

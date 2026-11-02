@@ -20,6 +20,7 @@ class SegmentationOutput:
     obstacles: List[Polygon]
     provider: str
     latency_ms: int
+    mask_outlines: bool = False
 
 
 class SegmentationService(Protocol):
@@ -137,6 +138,7 @@ class MetaSAMSegmentor:
                 obstacles=data.get("obstacles") or [],
                 provider=f"meta-{self.settings.sam_model}",
                 latency_ms=latency,
+                mask_outlines=bool(data.get("mask_outlines")),
             )
         except (MetaAPINotReady, MetaAPIError) as exc:
             logger.warning("SAM live path unavailable: %s", exc)

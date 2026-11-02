@@ -141,3 +141,9 @@ uchidan-ucchegacha tasdiqlanmagan.
       dekodlanadi (`sam_parse.masks_to_polygons`, test: `test_sam_masks.py`).
       Jonli tasdiq: uzun qiyshiq binoda panellar tom o'qi bo'ylab, tomdan
       chiqmasdan joylashdi; presetlar jonli PASS (49/56/216).
+- [x] Maska asosida yumshoq layout (2026-10-31): AABB uchun yozilgan 20%
+      yemirish + keng to'siq zonasi endi haqiqiy maska konturlariga
+      qo'llanmaydi (`mask_outlines` bayrog'i segmentatsiyadan refine gacha
+      uzatiladi). Qiya tomda janub yarmi qoidasi saqlanadi, lekin tom turi
+      tanlovi (Qiya/Tekis) qo'shildi. Jonli E2E uzun binoda: pitched 150,
+      flat 304 panel, hammasi tom ichida.

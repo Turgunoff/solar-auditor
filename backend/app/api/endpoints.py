@@ -190,6 +190,7 @@ def _run_pipeline(
         settings,
         sam_overbox=not tight_outlines,
         pitched=pitched,
+        mask_outlines=seg.mask_outlines,
     )
     area = usable_area_m2(
         seg.roof_polygons,
@@ -200,6 +201,7 @@ def _run_pipeline(
         height_px=height,
         sam_overbox=not tight_outlines,
         pitched=pitched,
+        mask_outlines=seg.mask_outlines,
     )
 
     analytics = compute_analytics(layout.total_panels, area, settings, assumptions=assumptions)
@@ -232,6 +234,7 @@ def _run_pipeline(
         segmentation=SegmentationResult(
             roof_polygons=seg.roof_polygons,
             obstacles=seg.obstacles,
+            mask_outlines=seg.mask_outlines,
         ),
         layout=layout,
         analytics=analytics,
@@ -505,6 +508,7 @@ def refine_layout(body: RefineRequest) -> RefineResponse:
         settings,
         sam_overbox=body.sam_overbox,
         pitched=body.pitched,
+        mask_outlines=body.mask_outlines,
     )
     area = usable_area_m2(
         body.roof_polygons,
@@ -515,6 +519,7 @@ def refine_layout(body: RefineRequest) -> RefineResponse:
         height_px=body.height_px,
         sam_overbox=body.sam_overbox,
         pitched=body.pitched,
+        mask_outlines=body.mask_outlines,
     )
     analytics = compute_analytics(
         layout.total_panels, area, settings, assumptions=body.assumptions

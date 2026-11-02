@@ -182,6 +182,7 @@ def place_panels(
     settings: Settings,
     sam_overbox: bool = True,
     pitched: bool = True,
+    mask_outlines: bool = False,
 ) -> LayoutResult:
     """Pack panels onto roof polygons.
 
@@ -191,7 +192,12 @@ def place_panels(
     templates) where that erosion would destroy small roofs.
     pitched=False skips the south-half cut for flat roofs, where every
     orientation is usable.
+    mask_outlines=True means the polygons are decoded SAM mask outlines,
+    not inflated AABBs — shrink and obstacle keepout use plain setback
+    while the south-half cut still applies for pitched roofs.
     """
+    # True masks need only setback erosion, not AABB overbox handling.
+    aggressive = sam_overbox and not mask_outlines
     panel_w = settings.panel_width_m / meters_per_pixel
     panel_h = settings.panel_height_m / meters_per_pixel
     setback_px = settings.setback_m / meters_per_pixel
@@ -236,7 +242,7 @@ def place_panels(
     blocked = None
     if obstacle_polys:
         keepout = (
-            max(setback_px * 2.5, panel_w * 0.6) if sam_overbox else setback_px
+            max(setback_px * 2.5, panel_w * 0.6) if aggressive else setback_px
         )
         blocked = unary_union(obstacle_polys).buffer(keepout)
 
@@ -244,7 +250,7 @@ def place_panels(
     panel_id = 1
 
     for roof in roofs:
-        if sam_overbox:
+        if aggressive:
             usable = _shrink_sam_overbox(roof, meters_per_pixel, setback_px)
         else:
             usable = roof.buffer(-setback_px) if setback_px > 0 else roof
@@ -299,6 +305,7 @@ def usable_area_m2(
     height_px: int | None = None,
     sam_overbox: bool = True,
     pitched: bool = True,
+    mask_outlines: bool = False,
 ) -> float:
     roofs = [_to_polygon(p) for p in roof_polygons]
     roofs = [r for r in roofs if r is not None]
@@ -307,12 +314,14 @@ def usable_area_m2(
     w = width_px or int(max(max(p[0] for p in pts) for pts in roof_polygons) + 1)
     h = height_px or int(max(max(p[1] for p in pts) for pts in roof_polygons) + 1)
     setback_px = settings.setback_m / meters_per_pixel
+    aggressive = sam_overbox and not mask_outlines
     if sam_overbox:
         roofs = _prefer_central_roofs(roofs, w, h, max_roofs=1)
-        roofs = [_shrink_sam_overbox(r, meters_per_pixel, setback_px) for r in roofs]
+        if aggressive:
+            roofs = [_shrink_sam_overbox(r, meters_per_pixel, setback_px) for r in roofs]
         if pitched:
             roofs = [sun_facing_region(r, meters_per_pixel) for r in roofs]
-    else:
+    if not aggressive:
         shrunk = [
             r.buffer(-setback_px) if setback_px > 0 else r for r in roofs
         ]
@@ -324,7 +333,7 @@ def usable_area_m2(
     obs = [_to_polygon(p) for p in obstacles]
     obs = [o for o in obs if o is not None and o.area < roof_union.area * 0.85]
     panel_w = settings.panel_width_m / meters_per_pixel
-    keepout = max(setback_px * 2.5, panel_w * 0.6) if sam_overbox else setback_px
+    keepout = max(setback_px * 2.5, panel_w * 0.6) if aggressive else setback_px
     if obs:
         usable = roof_union.difference(unary_union(obs).buffer(keepout))
     else:

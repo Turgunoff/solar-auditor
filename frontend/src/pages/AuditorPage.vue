@@ -130,6 +130,7 @@ function clearOutcome() {
   error.value = ''
   userBoxes.value = []
   drawMode.value = false
+  roofType.value = null
 }
 
 function onSelectPreset(id) {
@@ -167,11 +168,29 @@ function clearBoxes() {
   drawMode.value = false
 }
 
+// User can override the pitched/flat guess; null = auto (preset type or pitched).
+const roofType = ref(null)
+
+const effectivePitched = computed(() => {
+  if (roofType.value === 'flat') return false
+  if (roofType.value === 'pitched') return true
+  const preset = presets.value.find((p) => p.id === staged.value.id)
+  return preset ? preset.pitched !== false : true
+})
+
 function providerFlags() {
   const seg = result.value?.provider?.segmentation || ''
   const tight = seg === 'mock' || seg.endsWith('+mock-fallback')
-  const preset = presets.value.find((p) => p.id === staged.value.id)
-  return { sam_overbox: !tight, pitched: preset ? preset.pitched !== false : true }
+  return {
+    sam_overbox: !tight,
+    pitched: effectivePitched.value,
+    mask_outlines: result.value?.segmentation?.mask_outlines === true,
+  }
+}
+
+function setRoofType(t) {
+  roofType.value = t
+  onRefine(true)
 }
 
 async function onApplyAssumptions(a) {
@@ -179,9 +198,9 @@ async function onApplyAssumptions(a) {
   await onRefine()
 }
 
-async function onRefine() {
+async function onRefine(force = false) {
   if (!result.value) return
-  if (!userBoxes.value.length && !assumptions.value) return
+  if (!userBoxes.value.length && !assumptions.value && !force) return
   loading.value = true
   error.value = ''
   try {
@@ -416,6 +435,28 @@ onMounted(bootstrap)
     <div v-if="result" class="mx-4 mb-3 mt-3 flex flex-wrap items-center gap-2 md:mx-6">
       <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
         3 · Aniqlaş
+      </span>
+      <span class="roof-toggle" role="group" aria-label="Tom turi">
+        <button
+          type="button"
+          class="roof-opt"
+          :class="{ on: effectivePitched }"
+          :disabled="loading"
+          title="Qiya tom: faqat janubiy/quyoshli yarmiga panel qo'yiladi"
+          @click="setRoofType('pitched')"
+        >
+          Qiya
+        </button>
+        <button
+          type="button"
+          class="roof-opt"
+          :class="{ on: !effectivePitched }"
+          :disabled="loading"
+          title="Tekis tom: butun tomga panel qo'yiladi"
+          @click="setRoofType('flat')"
+        >
+          Tekis
+        </button>
       </span>
       <button
         class="btn"
@@ -760,6 +801,25 @@ onMounted(bootstrap)
   background: #fff;
   cursor: pointer;
 }
+
+.roof-toggle {
+  display: inline-flex;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.roof-opt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+}
+
+.roof-opt.on { background: #0f172a; color: #fff; }
+.roof-opt:disabled { opacity: 0.6; cursor: default; }
 
 .chip-green { border-color: #6ee7b7; color: #047857; background: #ecfdf5; }
 .chip-red { border-color: #fca5a5; color: #b91c1c; background: #fef2f2; }

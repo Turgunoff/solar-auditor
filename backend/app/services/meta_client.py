@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import httpx
 
 from app.core.config import Settings
-from app.services.sam_parse import extract_output_text, masks_to_polygons
+from app.services.sam_parse import extract_output_text, masks_to_polygons_with_meta
 
 logger = logging.getLogger(__name__)
 
@@ -146,6 +146,13 @@ class MetaModelClient:
 
     def _sam_concept(self, file_id: str, concept: str) -> List[Polygon]:
         """One noun-phrase concept per SAM request (Meta requirement)."""
+        polys, _ = self._sam_concept_meta(file_id, concept)
+        return polys
+
+    def _sam_concept_meta(
+        self, file_id: str, concept: str
+    ) -> tuple[List[Polygon], bool]:
+        """Same as _sam_concept, plus whether any record decoded from a mask."""
         body = {
             "model": self.settings.sam_model,
             "stream": False,
@@ -163,14 +170,14 @@ class MetaModelClient:
         }
         data = self._responses_create(body)
         text = extract_output_text(data)
-        return masks_to_polygons(text)
+        return masks_to_polygons_with_meta(text)
 
     def segment_rooftop(
         self,
         image_path: str,
         width: int,
         height: int,
-    ) -> Dict[str, List[Polygon]]:
+    ) -> Dict[str, Any]:
         if not self.configured:
             raise MetaAPINotReady(
                 "Set USE_MOCK=false and META_API_KEY to enable live SAM 3.1"
@@ -179,15 +186,17 @@ class MetaModelClient:
         file_id = self.upload_file(image_path)
         roofs: List[Polygon] = []
         obstacles: List[Polygon] = []
+        mask_outlines = False
 
         # Collect from multiple prompts then merge — better multi-plane coverage
         for concept in ROOF_PROMPTS:
             try:
-                found = self._sam_concept(file_id, concept)
+                found, used_mask = self._sam_concept_meta(file_id, concept)
             except MetaAPIError as exc:
                 logger.warning("SAM roof prompt %r failed: %s", concept, exc)
                 continue
             roofs.extend(found)
+            mask_outlines = mask_outlines or used_mask
 
         for concept in OBSTACLE_PROMPTS:
             try:
@@ -209,7 +218,11 @@ class MetaModelClient:
                 "(empty matches are valid — zoom closer to one building)."
             )
 
-        return {"roof_polygons": roofs, "obstacles": obstacles}
+        return {
+            "roof_polygons": roofs,
+            "obstacles": obstacles,
+            "mask_outlines": mask_outlines,
+        }
 
     def render_rooftop_with_panels(
         self,

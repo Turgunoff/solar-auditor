@@ -16,6 +16,7 @@ class Dimensions(BaseModel):
 class SegmentationResult(BaseModel):
     roof_polygons: List[Polygon]
     obstacles: List[Polygon]
+    mask_outlines: bool = False
 
 
 class PanelDimensions(BaseModel):
@@ -99,6 +100,7 @@ class RefineRequest(BaseModel):
     meters_per_pixel: float = Field(..., gt=0)
     sam_overbox: bool = True
     pitched: bool = True
+    mask_outlines: bool = False
     assumptions: Optional[Assumptions] = None
 
 

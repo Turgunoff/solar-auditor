@@ -47,7 +47,7 @@ Open http://localhost:5173 — Vite proxies `/api` and `/static` to the backend.
 2. Choose a source: **Preset 1 / 2 / 3**, upload an aerial JPG/PNG (drag & drop), or pick on Google Map — this only stages a preview, nothing is analyzed yet.
 3. Review the preview, then click **AI Auditni boshlash**.
 4. Inspect green roof / red obstacles / blue panel grid on the canvas.
-5. Optional: **Taqiqlangan zona chizish** → **Panellarni joylash** to re-pack around your zones.
+5. Optional: switch roof type (**Qiya** south-half vs **Tekis** full cover) or **Taqiqlangan zona chizish** → **Panellarni joylash** to re-pack.
 6. Optional: **Hisob sozlamalari** — region preset (sun-hours/tariff), panel size/power, prices, battery, on/off-grid → **Qayta hisoblash**.
 7. Open **Konsept renderni ko'rish** va **PDF hisobotni yuklash**.
 8. Revisit audits under **Projects**.
