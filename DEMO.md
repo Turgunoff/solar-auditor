@@ -22,11 +22,11 @@ One-liner: “Upload a rooftop photo → Meta SAM segments usable area → auto 
 | Vaqt | Ekran | Aytiladigan matn |
 |---|---|---|
 | 0:00–0:15 | Landing → **Open auditor** | “Tom suratidan quyosh stansiyasi eskizigacha — bir daqiqadan kam. Orqada Meta SAM 3.1 va Muse modellari.” |
-| 0:15–0:35 | Preset 1 tanlash → **Run AI Audit** | “SAM tom va to'siqlarni ajratadi. Yashil — tom, qizil — to'siq, ko'k — hisob-kitob dvigateli joylagan panellar. Bu rasm generatsiyasi emas, Shapely geometriyasi.” |
+| 0:15–0:35 | Preset 1 tanlash → **AI Auditni boshlash** | “SAM tom va to'siqlarni ajratadi. Yashil — tom, qizil — to'siq, ko'k — hisob-kitob dvigateli joylagan panellar. Bu rasm generatsiyasi emas, Shapely geometriyasi.” |
 | 0:35–0:55 | Canvas + Engineering metrics | “Panellar soni, kWp, yillik kWh va o'zini oqlash muddati — hammasi layout dan keladi. Muse surati faqat koncept; ishonchli son — overlay da.” |
-| 0:55–1:20 | **Draw exclusion zone** → **Place panels** | “Foydalanuvchi taqiqlangan zonani chizadi — dvigatel panellarni qayta joylaydi. Bu sotuvchi va mijoz suhbati uchun interaktiv qism.” |
-| 1:20–1:40 | **Estimate settings** → region/tarif/batareya → **Recalculate** | “Taxminlar shaffof: panel quvvati, tarif, quyosh soati, batareya va on/off-grid jonli qayta hisoblanadi. Off-grid batareyasiz rad etiladi.” |
-| 1:40–2:00 | **Preview Concept Render** → **Download PDF Report** | “Yakunda — mijozga beriladigan PDF: oldin/keyin rasmlari, materiallar ro'yxati va halol disclaimer bilan. Keyingi qadam — joyida o'lchov.” |
+| 0:55–1:20 | **Taqiqlangan zona chizish** → **Panellarni joylash** | “Foydalanuvchi taqiqlangan zonani chizadi — dvigatel panellarni qayta joylaydi. Bu sotuvchi va mijoz suhbati uchun interaktiv qism.” |
+| 1:20–1:40 | **Hisob sozlamalari** → region/tarif/batareya → **Qayta hisoblash** | “Taxminlar shaffof: panel quvvati, tarif, quyosh soati, batareya va on/off-grid jonli qayta hisoblanadi. Off-grid batareyasiz rad etiladi.” |
+| 1:40–2:00 | **Konsept renderni ko'rish** → **PDF hisobotni yuklash** | “Yakunda — mijozga beriladigan PDF: oldin/keyin rasmlari, materiallar ro'yxati va halol disclaimer bilan. Keyingi qadam — joyida o'lchov.” |
 
 Muvaffaqiyatsiz sahna bo'lsa: tom topilmasa tizim panel uydirmaydi — 422 bilan halol xato beradi. Bu zaiflik emas, dizayn qarori sifatida aytilsin.
 

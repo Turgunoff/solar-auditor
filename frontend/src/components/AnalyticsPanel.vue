@@ -96,8 +96,8 @@ const co2TonnesPerYear = computed(() => {
 <template>
   <aside class="eng-panel">
     <div class="eng-head">
-      <h2>Engineering metrics</h2>
-      <span class="eng-cert">Layout-engine · not a bankable report</span>
+      <h2>Natijalar</h2>
+      <span class="eng-cert">Hisob dvigateli · bank hisoboti emas</span>
     </div>
 
     <div v-if="loading" class="space-y-3">
@@ -112,22 +112,22 @@ const co2TonnesPerYear = computed(() => {
     <template v-else-if="result">
       <div class="grid grid-cols-2 gap-3">
         <div class="metric">
-          <div class="metric-label">System Capacity</div>
+          <div class="metric-label">Tizim quvvati</div>
           <div class="metric-value">{{ fmt(result.analytics.system_capacity_kw, 1) }} <small>kWp</small></div>
           <div class="metric-sub">Modules: <b>{{ result.layout.total_panels }}× {{ panelWatts ?? '—' }}W</b></div>
         </div>
         <div class="metric">
-          <div class="metric-label">Annual Yield</div>
+          <div class="metric-label">Yillik ishlab chiqarish</div>
           <div class="metric-value text-emerald-600">{{ fmt(result.analytics.annual_generation_kwh, 0) }} <small>kWh</small></div>
           <div class="metric-sub">Cap. Factor: <b>{{ capFactor == null ? '—' : fmt(capFactor, 1) + '%' }}</b></div>
         </div>
         <div class="metric">
-          <div class="metric-label">Net Turnkey Cost</div>
+          <div class="metric-label">Taxminiy narx</div>
           <div class="metric-value">${{ fmt(result.analytics.estimated_cost_usd, 0) }}</div>
           <div class="metric-sub">Usable: <b>{{ fmt(result.analytics.usable_area_m2, 0) }} m²</b></div>
         </div>
         <div class="metric">
-          <div class="metric-label">Payback Period</div>
+          <div class="metric-label">O'zini oqlash</div>
           <div class="metric-value text-sky-600">
             {{ result.analytics.roi_years == null ? 'N/A' : fmt(result.analytics.roi_years, 1) }}
             <small v-if="result.analytics.roi_years != null">Years</small>
@@ -138,49 +138,49 @@ const co2TonnesPerYear = computed(() => {
 
       <div class="eng-section">
         <div class="eng-section-head">
-          <h3>AI engineering narrative</h3>
+          <h3>AI izohi</h3>
           <span class="eng-chip">{{ result.provider?.segmentation || 'engine' }}</span>
         </div>
         <div class="narrative">
-          <p class="narr-title"><i class="dot dot-green" />Feasibility assessment</p>
+          <p class="narr-title"><i class="dot dot-green" />Imkoniyat bahosi</p>
           <p>{{ result.analytics.agent_summary }}</p>
         </div>
         <div class="narrative">
-          <p class="narr-title"><i class="dot dot-red" />Obstacle &amp; exclusion buffer</p>
+          <p class="narr-title"><i class="dot dot-red" />To'siqlar hisobi</p>
           <p>
-            {{ obstacleCount ?? '—' }} obstacle polygon{{ obstacleCount === 1 ? '' : 's' }} mapped.
-            Panels are packed only on the sun-facing usable roof with setbacks enforced.
+            {{ obstacleCount ?? '—' }} ta to'siq{{ obstacleCount === 1 ? '' : 's' }} mapped.
+            Panellar faqat quyoshli, yaroqli tom qismiga chekinishlar bilan joylanadi.
           </p>
         </div>
       </div>
 
       <div class="eng-section">
-        <h3 class="eng-specs-head">Technical hardware specs</h3>
+        <h3 class="eng-specs-head">Texnik ma'lumotlar</h3>
         <dl class="specs">
           <div><dt>PV Module</dt><dd>{{ panelWatts ?? '—' }} W · {{ fmt(result.analytics.usable_area_m2 && result.layout.total_panels ? result.analytics.usable_area_m2 / result.layout.total_panels : null, 1) }} m²/panel</dd></div>
           <div><dt>Usable Roof Area</dt><dd>{{ fmt(result.analytics.usable_area_m2, 1) }} m²</dd></div>
           <div v-if="co2TonnesPerYear != null"><dt>CO₂ avoided (est.)</dt><dd>{{ fmt(co2TonnesPerYear, 1) }} t/yr</dd></div>
-          <div><dt>Grid Mode</dt><dd>{{ result.analytics.grid_type === 'offgrid' ? 'Off-grid' : 'On-grid' }}{{ result.analytics.battery_kwh ? ` · ${result.analytics.battery_kwh} kWh battery` : '' }}</dd></div>
-          <div v-if="result.analytics.region && result.analytics.region !== 'global'"><dt>Region preset</dt><dd>{{ REGION_LABELS[result.analytics.region] || result.analytics.region }}</dd></div>
+          <div><dt>Tarmoq rejimi</dt><dd>{{ result.analytics.grid_type === 'offgrid' ? 'Mustaqil (off-grid)' : 'Tarmoqqa ulangan' }}{{ result.analytics.battery_kwh ? ` · ${result.analytics.battery_kwh} kWh batareya` : '' }}</dd></div>
+          <div v-if="result.analytics.region && result.analytics.region !== 'global'"><dt>Region</dt><dd>{{ REGION_LABELS[result.analytics.region] || result.analytics.region }}</dd></div>
         </dl>
         <button
           class="specs-toggle"
           type="button"
           @click="openForm"
         >
-          Estimate settings
+          Hisob sozlamalari
           <span>{{ formOpen ? 'Hide' : 'Edit' }}</span>
         </button>
         <div v-if="formOpen && form" class="mt-2 grid grid-cols-2 gap-2 text-[11px]">
-          <label class="fld">Region
+          <label class="fld">Region (davlat)
             <select v-model="form.region" @change="onRegionChange">
               <option v-for="(label, key) in REGION_LABELS" :key="key" :value="key">{{ label }}</option>
             </select>
           </label>
-          <label class="fld">Panel, W
+          <label class="fld">Panel quvvati, W
             <input v-model.number="form.panel_w" type="number" min="1" />
           </label>
-          <label class="fld">Cost, $/kW
+          <label class="fld">Narx, $/kW
             <input v-model.number="form.cost_per_kw_usd" type="number" min="0" />
           </label>
           <label class="fld">Panel W, m
@@ -189,10 +189,10 @@ const co2TonnesPerYear = computed(() => {
           <label class="fld">Panel H, m
             <input v-model.number="form.panel_height_m" type="number" step="0.1" min="0.1" />
           </label>
-          <label class="fld">Tariff, $/kWh
+          <label class="fld">Tarif, $/kWh
             <input v-model.number="form.tariff_per_kwh_usd" type="number" step="0.01" min="0" />
           </label>
-          <label class="fld">Sun hours/yr
+          <label class="fld">Quyosh soati/yil
             <input v-model.number="form.peak_sun_hours" type="number" min="1" />
           </label>
           <label class="fld">Grid
@@ -201,17 +201,17 @@ const co2TonnesPerYear = computed(() => {
               <option value="offgrid">Off-grid</option>
             </select>
           </label>
-          <label class="fld">Battery, kWh
+          <label class="fld">Batareya, kWh
             <input v-model.number="form.battery_kwh" type="number" min="0" />
           </label>
-          <label class="fld col-span-2">Battery price, $/kWh
+          <label class="fld col-span-2">Batareya narxi, $/kWh
             <input v-model.number="form.battery_price_per_kwh_usd" type="number" min="0" />
           </label>
           <button class="btn btn-primary col-span-2 mt-1" type="button" @click="applyForm">
-            Recalculate
+            Qayta hisoblash
           </button>
         </div>
-        <p v-else-if="formOpen" class="mt-2 text-[11px] text-slate-500">Loading defaults…</p>
+        <p v-else-if="formOpen" class="mt-2 text-[11px] text-slate-500">Yuklanmoqda…</p>
       </div>
 
       <div class="rounded-xl border border-amber-200 bg-amber-50 p-3">
@@ -223,16 +223,16 @@ const co2TonnesPerYear = computed(() => {
 
       <div class="mt-auto flex flex-col gap-2">
         <button class="btn btn-ghost w-full" type="button" @click="$emit('view-render')">
-          Preview Concept Render
+          Konsept renderni ko'rish
         </button>
         <button class="btn btn-primary w-full" type="button" @click="$emit('download-pdf')">
-          Download PDF Engineering Report
+          PDF hisobotni yuklash
         </button>
       </div>
     </template>
 
     <p v-else class="text-sm text-slate-500">
-      Run an audit to see capacity, generation, and payback estimates.
+      Boshlash uchun yuqoridan manba tanlab, AI Auditni bosing — natijalar shu yerda chiqadi.
     </p>
   </aside>
 </template>

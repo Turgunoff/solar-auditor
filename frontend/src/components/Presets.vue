@@ -21,7 +21,7 @@ function pickFile(files, emit) {
 <template>
   <div class="preset-bar">
     <div class="tabs" role="tablist" aria-label="Roof preset">
-      <span class="tabs-label">Roof preset:</span>
+      <span class="tabs-label">1 · Manba:</span>
       <button
         v-for="p in presets"
         :key="p.id"
@@ -41,7 +41,7 @@ function pickFile(files, emit) {
         @dragover.prevent
         @drop.prevent="pickFile($event.dataTransfer.files, $emit)"
       >
-        {{ stagedKind === 'upload' ? `✓ ${uploadName}` : 'Upload Aerial (Max 15MB)' }}
+        {{ stagedKind === 'upload' ? `✓ ${uploadName}` : 'Rasm yuklash (15MB gacha)' }}
         <input
           type="file"
           accept="image/jpeg,image/png,.jpg,.jpeg,.png"
@@ -59,16 +59,16 @@ function pickFile(files, emit) {
         :disabled="loading"
         @click="$emit('open-map')"
       >
-        Pick on Map
+        Xaritadan tanlash
       </button>
     </div>
 
     <div class="flex items-center gap-2">
       <button class="btn btn-ghost" type="button" :disabled="loading" @click="$emit('reset')">
-        Reset
+        Tozalash
       </button>
       <button class="btn btn-run" type="button" :disabled="!canRun" @click="$emit('run')">
-        {{ loading ? 'Analyzing…' : 'Run AI Solar Audit' }}
+        {{ loading ? 'Tahlil ketmoqda…' : 'AI Auditni boshlash' }}
       </button>
     </div>
   </div>

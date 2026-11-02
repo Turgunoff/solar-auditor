@@ -76,7 +76,7 @@ function draw() {
   if (!imageObj.value) {
     ctx.fillStyle = '#64748b'
     ctx.font = '14px sans-serif'
-    ctx.fillText('Select a preset, upload aerial, or pick on Google Map', 24, 40)
+    ctx.fillText('Boshlash uchun: tayyor tom tanlang, rasm yuklang yoki xaritadan belgilang', 24, 40)
     return
   }
 
@@ -92,7 +92,7 @@ function draw() {
     ctx.fillRect(16, 16, 280, 36)
     ctx.fillStyle = '#67e8f9'
     ctx.font = '13px sans-serif'
-    ctx.fillText('Preview — click Run AI Audit', 28, 40)
+    ctx.fillText('Oldindan ko‘rish — AI Auditni boshlashni bosing', 28, 40)
     return
   }
 
@@ -286,10 +286,10 @@ onUnmounted(() => {
       @mousemove="onMove"
     />
     <div class="pointer-events-none absolute bottom-3 left-3 flex gap-2 text-[11px] font-semibold">
-      <span class="rounded bg-white/85 px-2 py-1 text-emerald-700">Roof</span>
-      <span class="rounded bg-white/85 px-2 py-1 text-rose-600">Obstacles</span>
-      <span class="rounded bg-white/85 px-2 py-1 text-sky-700">Panels</span>
-      <span class="rounded bg-white/85 px-2 py-1 text-slate-500">Scroll zoom · drag pan</span>
+      <span class="rounded bg-white/85 px-2 py-1 text-emerald-700">Tom</span>
+      <span class="rounded bg-white/85 px-2 py-1 text-rose-600">To'siqlar</span>
+      <span class="rounded bg-white/85 px-2 py-1 text-sky-700">Panellar</span>
+      <span class="rounded bg-white/85 px-2 py-1 text-slate-500">G'ildirak — masshtab · tortish — siljitish</span>
     </div>
   </div>
 </template>

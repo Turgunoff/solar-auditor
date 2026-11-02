@@ -29,14 +29,14 @@ defineProps({
           class="eng-badge"
           :class="mode === 'live' ? 'eng-badge-live' : 'eng-badge-mock'"
         >
-          <i />Meta SAM 3.1: {{ mode === 'live' ? 'READY' : 'MOCK' }}
+          <i />Meta SAM 3.1: {{ mode === 'live' ? 'Jonli' : 'Mock' }}
         </span>
         <span class="eng-badge eng-badge-idle">
-          <i />Muse Engine: {{ runProviders?.agent ? 'USED' : 'STANDBY' }}
+          <i />Muse: {{ runProviders?.agent ? 'Ishlatildi' : 'Kutmoqda' }}
         </span>
-        <span class="eng-badge eng-badge-mode">Mode: {{ mode }}</span>
-        <RouterLink to="/setup" class="eng-link">API Docs</RouterLink>
-        <RouterLink to="/projects" class="eng-link">Projects</RouterLink>
+        <span class="eng-badge eng-badge-mode">{{ mode === 'live' ? 'Jonli rejim' : 'Demo rejim' }}</span>
+        <RouterLink to="/setup" class="eng-link">Sozlamalar</RouterLink>
+        <RouterLink to="/projects" class="eng-link">Loyihalarim</RouterLink>
       </div>
     </header>
     <div

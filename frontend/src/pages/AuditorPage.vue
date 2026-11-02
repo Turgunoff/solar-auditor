@@ -55,6 +55,15 @@ const selectedPreset = computed(() =>
   presets.value.find((p) => p.id === (staged.value.kind === 'preset' ? staged.value.id : '')) || null,
 )
 
+// 1 = source, 2 = staged (ready to run / running), 3 = result ready.
+const activeStep = computed(() => (result.value ? 3 : staged.value.kind ? 2 : 1))
+
+const steps = computed(() => [
+  { n: 1, title: 'Manbani tanlang', hint: 'Preset, rasm yoki xarita' },
+  { n: 2, title: 'AI Audit', hint: loading.value ? 'Tahlil ketmoqda…' : 'Tom va panellar hisoblanadi' },
+  { n: 3, title: 'Natija', hint: 'Sozlang, render va PDF oling' },
+])
+
 const canRun = computed(() => !!staged.value.kind && !loading.value)
 const stageLabel = computed(() => {
   if (staged.value.kind === 'preset') {
@@ -249,8 +258,51 @@ onMounted(bootstrap)
       @reset="reset"
     />
 
-    <div v-if="stageLabel && !result" class="mx-4 mt-1 text-xs text-slate-500 md:mx-6">
-      Staged: <b>{{ stageLabel }}</b> — review, then Run AI Solar Audit above.
+    <ol class="steps" aria-label="Audit bosqichlari">
+      <li
+        v-for="s in steps"
+        :key="s.n"
+        class="step"
+        :class="{ active: activeStep === s.n, done: activeStep > s.n }"
+      >
+        <span class="step-num">{{ activeStep > s.n ? '✓' : s.n }}</span>
+        <span class="step-text">
+          <b>{{ s.title }}</b>
+          <small>{{ s.hint }}</small>
+        </span>
+      </li>
+    </ol>
+
+    <div v-if="!staged.kind && !result" class="guide">
+      <b>Qanday ishlaydi?</b>
+      Chapdan tayyor tomni tanlang, o'zingizning aerofotongizni yuklang yoki xaritadan binoni belgilang.
+      Keyin yashil <b>AI Auditni boshlash</b> tugmasini bosing — qolganini AI bajaradi:
+      tomni topadi, panellarni joylaydi, narx va o'zini oqlash muddatini hisoblaydi.
+    </div>
+
+    <div v-if="stageLabel && !result && !loading" class="mx-4 mt-3 text-sm text-slate-600 md:mx-6">
+      Tanlandi: <b class="text-slate-900">{{ stageLabel }}</b> — ko'rib chiqing, keyin
+      <b>AI Auditni boshlash</b> tugmasini bosing.
+    </div>
+
+    <div v-if="loading" class="loading-note" role="status">
+      <span class="spinner" aria-hidden="true" />
+      <span>
+        <b>AI ishlamoqda.</b>
+        Tom aniqlanmoqda → panellar joylanmoqda → hisobot tayyorlanmoqda.
+        Jonli rejimda odatda 30–60 soniya.
+      </span>
+    </div>
+
+    <div v-if="result && !loading" class="result-banner" role="status">
+      <span class="result-main">
+        <b>{{ panelCount }} ta panel</b> · {{ result.analytics.system_capacity_kw }} kWp ·
+        yiliga ~{{ Math.round(result.analytics.annual_generation_kwh).toLocaleString() }} kWh
+      </span>
+      <span class="result-actions">
+        <button class="btn btn-ghost" type="button" @click="modalOpen = true">Renderni ko'rish</button>
+        <button class="btn btn-primary" type="button" @click="downloadPdf">PDF hisobot</button>
+      </span>
     </div>
 
     <div
@@ -283,10 +335,10 @@ onMounted(bootstrap)
       Kattaroq kesma yuklang, exclusion zonalarni tozalang yoki presetda sinab ko'ring.
     </div>
 
-    <!-- Step 3 · Refine (after analysis) -->
+    <!-- Step 3 · Aniqlash (natijadan keyin) -->
     <div v-if="result" class="mx-4 mb-3 mt-3 flex flex-wrap items-center gap-2 md:mx-6">
       <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
-        3 · Refine
+        3 · Aniqlaş
       </span>
       <button
         class="btn"
@@ -295,8 +347,11 @@ onMounted(bootstrap)
         :disabled="loading"
         @click="drawMode = !drawMode"
       >
-        {{ drawMode ? 'Drawing… click-drag on roof' : 'Draw exclusion zone' }}
+        {{ drawMode ? 'Chizilmoqda — tom ustida torting' : 'Taqiqlangan zona chizish' }}
       </button>
+      <span v-if="drawMode" class="text-xs text-slate-500">
+        Panel qo'yilmasin degan joyni sichqoncha bilan tortib belgilang.
+      </span>
       <button
         v-if="userBoxes.length"
         class="btn btn-primary"
@@ -304,7 +359,7 @@ onMounted(bootstrap)
         :disabled="loading"
         @click="onRefine"
       >
-        {{ loading ? 'Placing…' : `Place panels (${userBoxes.length} zone${userBoxes.length > 1 ? 's' : ''})` }}
+        {{ loading ? 'Joylanmoqda…' : `Panellarni joylash (${userBoxes.length} zona)` }}
       </button>
       <button
         v-if="userBoxes.length"
@@ -313,20 +368,20 @@ onMounted(bootstrap)
         :disabled="loading"
         @click="clearBoxes"
       >
-        Clear zones
+        Zonalarni tozalash
       </button>
     </div>
 
     <div class="mx-4 mt-3 flex flex-wrap items-center gap-2 md:mx-6">
-      <span class="layers-label">Layers:</span>
+      <span class="layers-label">Qatlamlar:</span>
       <button type="button" class="chip chip-green" :class="{ off: !layers.roof }" @click="layers.roof = !layers.roof">
-        Roof Polygons{{ result ? ` (${roofCount})` : '' }}
+        Tom{{ result ? ` (${roofCount})` : '' }}
       </button>
       <button type="button" class="chip chip-red" :class="{ off: !layers.obstacles }" @click="layers.obstacles = !layers.obstacles">
-        Obstacles{{ result ? ` (${obstacleCount})` : '' }}
+        To'siqlar{{ result ? ` (${obstacleCount})` : '' }}
       </button>
       <button type="button" class="chip chip-blue" :class="{ off: !layers.panels }" @click="layers.panels = !layers.panels">
-        PV Panels{{ result ? ` (${panelCount})` : '' }}
+        Panellar{{ result ? ` (${panelCount})` : '' }}
       </button>
     </div>
 
@@ -344,10 +399,10 @@ onMounted(bootstrap)
           @add-box="onAddBox"
         />
         <div v-if="result" class="telemetry">
-          <span>Panels: <b>{{ panelCount }}</b></span>
-          <span>Scale: <b>{{ result.meters_per_pixel ? result.meters_per_pixel.toFixed(3) + ' m/px' : '—' }}</b></span>
-          <span>Segmentation: <b>{{ result.provider?.segmentation || '—' }}</b></span>
-          <span>Audit Status: <b class="text-emerald-600">Calibrated</b></span>
+          <span>Panellar: <b>{{ panelCount }}</b></span>
+          <span>Masshtab: <b>{{ result.meters_per_pixel ? result.meters_per_pixel.toFixed(3) + ' m/px' : '—' }}</b></span>
+          <span>AI modeli: <b>{{ result.provider?.segmentation || '—' }}</b></span>
+          <span>Holat: <b class="text-emerald-600">Tayyor</b></span>
         </div>
       </div>
       <AnalyticsPanel
@@ -377,6 +432,126 @@ onMounted(bootstrap)
 </template>
 
 <style scoped>
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0.75rem 1rem 0;
+  padding: 0;
+}
+
+@media (min-width: 768px) {
+  .steps { margin-left: 1.5rem; margin-right: 1.5rem; }
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 1 1 180px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.55rem 0.8rem;
+  opacity: 0.65;
+}
+
+.step.active { opacity: 1; border-color: #6ee7b7; background: #f0fdf4; }
+.step.done { opacity: 1; }
+
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 800;
+  flex: none;
+}
+
+.step.active .step-num { background: #16a34a; color: #fff; }
+.step.done .step-num { background: #dcfce7; color: #15803d; }
+
+.step-text { display: flex; flex-direction: column; line-height: 1.25; }
+.step-text b { font-size: 0.85rem; color: #0f172a; }
+.step-text small { font-size: 0.72rem; color: #64748b; }
+
+.guide {
+  margin: 0.75rem 1rem 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #475569;
+}
+
+.guide b { color: #0f172a; }
+
+@media (min-width: 768px) {
+  .guide { margin-left: 1.5rem; margin-right: 1.5rem; }
+}
+
+.loading-note {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0.75rem 1rem 0;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  font-size: 0.85rem;
+  color: #166534;
+}
+
+@media (min-width: 768px) {
+  .loading-note { margin-left: 1.5rem; margin-right: 1.5rem; }
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  border: 2.5px solid #bbf7d0;
+  border-top-color: #16a34a;
+  animation: spin 0.8s linear infinite;
+  flex: none;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
+}
+
+.result-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin: 0.75rem 1rem 0;
+  background: #0f172a;
+  color: #f8fafc;
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+}
+
+@media (min-width: 768px) {
+  .result-banner { margin-left: 1.5rem; margin-right: 1.5rem; }
+}
+
+.result-main b { color: #86efac; }
+.result-actions { display: flex; gap: 0.5rem; }
+
 .layers-label {
   font-size: 0.68rem;
   font-weight: 800;
