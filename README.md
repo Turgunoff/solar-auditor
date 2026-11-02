@@ -48,7 +48,7 @@ Open http://localhost:5173 — Vite proxies `/api` and `/static` to the backend.
 3. Review the preview, then click **Run AI Audit**.
 4. Inspect green roof / red obstacles / blue panel grid on the canvas.
 5. Optional: **Draw exclusion zone** → **Place panels** to re-pack around your zones.
-6. Optional: **Estimate settings** — panel size/power, prices, tariff, battery, on/off-grid → **Recalculate**.
+6. Optional: **Estimate settings** — region preset (sun-hours/tariff), panel size/power, prices, battery, on/off-grid → **Recalculate**.
 7. Open **Preview Concept Render** and **Download PDF Report**.
 8. Revisit audits under **Projects**.
 
@@ -87,7 +87,7 @@ See `.env.example`. Important flags:
 - `POST /api/v1/process/upload` `multipart file`
 - `POST /api/v1/process/map-upload` (Static Maps capture + lat/lng/zoom)
 - `POST /api/v1/process/refine` (re-pack with `user_boxes` + `assumptions`)
-- `GET /api/v1/assumptions/defaults`
+- `GET /api/v1/assumptions/defaults` (includes `regions` sun/tariff presets)
 - `POST /api/v1/leads`
 - `GET /api/v1/export-pdf/{project_id}`
 - Interactive docs: http://localhost:8000/docs

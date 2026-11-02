@@ -12,7 +12,7 @@ One repo is enough: `ci.yml` tests on every push. Deploy is manual
 | Generated data | `/opt/solar-auditor/backend/static` (uploads/renders/exports, survives redeploys) |
 | systemd unit | `solar-auditor.service` → `docker compose up -d` in `/opt/solar-auditor` (enabled) |
 | Host nginx vhost | `/etc/nginx/sites-{available,enabled}/cyberpitch.uz` → `127.0.0.1:8080` |
-| Public URL | `http://51.12.209.235:8080` now; `https://cyberpitch.uz` after DNS + certbot |
+| Public URL | `https://cyberpitch.uz` (live, verified 200 on `/api/v1/health`); fallback `http://51.12.209.235:8080` |
 | SSH key (local) | `Downloads/iMe Desktop/ozodbek_key.pem` on the dev machine |
 
 Taken host ports (do not use): `80` (main site nginx), `8000` (quizin app).
@@ -51,17 +51,12 @@ curl http://localhost:8080/api/v1/health
 Note: host ports 80 (main site nginx) and 8000 (another app) are taken,
 so the app serves on **8080**.
 
-## Domain (cyberpitch.uz) — done on server
+## Domain (cyberpitch.uz) — live
 
 Host nginx vhost `/etc/nginx/sites-{available,enabled}/cyberpitch.uz`
-proxies `cyberpitch.uz` + `www` → `127.0.0.1:8080`. Verified with
-`Host:` header override (200 + live `/api/v1/health`).
-
-After DNS points at the server IP:
-
-```bash
-sudo certbot --nginx -d cyberpitch.uz -d www.cyberpitch.uz
-```
+proxies `cyberpitch.uz` + `www` → `127.0.0.1:8080`. HTTPS is live:
+`https://cyberpitch.uz/api/v1/health` returns 200 with `mode: live`
+(verified 2026-10-31). Demo package: `DEMO.md`.
 
 ## Manual update (git pull workflow)
 

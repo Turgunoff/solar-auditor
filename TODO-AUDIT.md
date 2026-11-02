@@ -127,3 +127,11 @@ uchidan-ucchegacha tasdiqlanmagan.
 4. Analitikaga `derate` va chegara testlari.
 5. `meta_client` uchun mock-serverda jonli kontrakt testi.
 6. Frontend build hajmi + kalitsiz Maps fallback tekshiruvi.
+- [x] Hakaton tayyorgarligi (2026-10-31): jonli dalil olindi — `smoke_pipeline.py`
+      jonli rejimda uchala preset `meta-sam-3.1` (124/160/988 panel, PASS),
+      bitta audit uchala provayderni ham jonli qaytardi; `cyberpitch.uz`
+      HTTPS 200 (live). `DEMO.md` ssenariy/pitch yozildi, `DEPLOY.md`
+      yangilandi. Region presetlari (UZ/US/EU: quyosh+tarif, aniq maydon
+      ustun) + loyiha disk-persist (restartda PDF saqlanadi) + do'stona
+      xato xabarlari qo'shildi; testlar: `test_region_presets.py`,
+      `test_store_persist.py`, `friendlyError.test.js`.
