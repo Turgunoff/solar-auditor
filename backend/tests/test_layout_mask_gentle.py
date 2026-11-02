@@ -116,3 +116,25 @@ def test_expand_rim_pad_reaches_preset3_style_membrane():
     poly = Polygon(expanded[0])
     assert poly.bounds[2] >= 1355 + 150  # covers leftover membrane strip
     assert poly.bounds[0] >= 240  # left edge stays near original mask
+
+
+def test_expand_snaps_to_bright_membrane_below_mask(tmp_path):
+    """Aerial snap grows past SAM bottom when white membrane continues."""
+    from PIL import Image
+    from shapely.geometry import Polygon
+
+    from app.services.layout_engine import expand_flat_mask_roofs
+
+    s = Settings(use_mock=True)
+    # Synthetic aerial: bright membrane 100–500 in y, asphalt elsewhere
+    img = Image.new("RGB", (600, 600), (40, 40, 40))
+    for y in range(100, 500):
+        for x in range(80, 520):
+            img.putpixel((x, y), (210, 210, 205))
+    path = tmp_path / "membrane.jpg"
+    img.save(path)
+    # SAM mask stops at y=350 while membrane continues to 500
+    roof = [[(100, 120), (500, 120), (500, 350), (100, 350)]]
+    expanded = expand_flat_mask_roofs(roof, [], 0.05, s, image_path=str(path))
+    poly = Polygon(expanded[0])
+    assert poly.bounds[3] >= 450  # grew toward parapet

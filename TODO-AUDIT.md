@@ -44,9 +44,9 @@ uchidan-ucchegacha tasdiqlanmagan.
 - [x] Preset 3 incomplete SAM mask + packing strip (2026-11-02): jonli mask
       warehouse o'rtasida to'xtab, HVAC tashqarida qolardi — yashil kontur ichida
       katta bo'sh oq zona. `expand_flat_mask_roofs` HVAC bilan hull qiladi;
-      rim HVAC dan keyin membrane/parapet gacha pad (~5.5 panel); `_pack_oriented`
-      4-fazali offset; flat mask envelope + medium keepout. Endpoint expand'ni
-      UI roof_polygons ga ham yozadi. Jonli Preset 3: 553 → 667 → ~780+ panel.
+      rim HVAC pad + aerial bright-membrane snap (pastki ~167 px membrana);
+      `_pack_oriented` 4-fazali offset; flat mask envelope + medium keepout.
+      Jonli Preset 3: 553 → 667 → 828 → ~1050+ panel (to'liq oq tom).
 - [x] Refine oqimi + shovqin filtri (2026-10-29): 1) Analyze → zona chizish →
       Place panels (`POST /api/v1/process/refine`, user qutilari tomga kesib
       olinadi); 2) tomga tegmagan katta to'siqlar (parking/yo'l/maysa) endi

@@ -191,7 +191,11 @@ def _run_pipeline(
         # Grow incomplete flat SAM masks so canvas green + packing match the
         # full warehouse membrane (HVAC just outside the raw outline).
         roof_polys = expand_flat_mask_roofs(
-            seg.roof_polygons, seg.obstacles, meters_per_pixel, settings
+            seg.roof_polygons,
+            seg.obstacles,
+            meters_per_pixel,
+            settings,
+            image_path=str(image_path),
         )
         seg = replace(seg, roof_polygons=roof_polys)
 

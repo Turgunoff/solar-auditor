@@ -266,19 +266,119 @@ def _extend_hull_past_rim_equipment(
     return grown if not grown.is_empty else hull
 
 
+def _snap_hull_to_bright_membrane(
+    hull: Polygon,
+    image_path: str,
+    panel_w: float,
+    panel_h: float,
+) -> Polygon:
+    """Grow hull edges across leftover white membrane (no HVAC cue needed).
+
+    Preset 3 SAM stopped ~167 px above the parapet while the membrane kept
+    going — rim-HVAC pad could not help because gear sat inside the mask.
+    Walk each edge outward while brightness stays roof-like; allow short
+    dark gaps for HVAC, stop at asphalt/trees.
+    """
+    try:
+        from PIL import Image
+        import numpy as np
+    except Exception:
+        return hull
+    try:
+        arr = np.asarray(Image.open(image_path).convert("RGB"))
+    except Exception:
+        return hull
+    if arr.ndim != 3 or arr.size == 0:
+        return hull
+    bri = arr.mean(axis=2)
+    img_h, img_w = bri.shape
+    minx, miny, maxx, maxy = hull.bounds
+    # Interior reference brightness of the known roof patch
+    ix0 = max(0, int(minx + (maxx - minx) * 0.2))
+    ix1 = min(img_w, int(maxx - (maxx - minx) * 0.2))
+    iy0 = max(0, int(miny + (maxy - miny) * 0.2))
+    iy1 = min(img_h, int(maxy - (maxy - miny) * 0.2))
+    if ix1 <= ix0 + 2 or iy1 <= iy0 + 2:
+        return hull
+    interior = bri[iy0:iy1, ix0:ix1]
+    thr = float(max(150.0, np.median(interior) * 0.82))
+    max_ext_x = panel_w * 8.0
+    max_ext_y = panel_h * 12.0
+    gap_tol = max(panel_h * 2.5, 40.0)
+
+    def _bright_frac(x_samples: List[int], y: int) -> float:
+        if y < 0 or y >= img_h or not x_samples:
+            return 0.0
+        vals = [bri[y, x] for x in x_samples if 0 <= x < img_w]
+        if not vals:
+            return 0.0
+        return sum(1 for v in vals if v >= thr) / len(vals)
+
+    def _walk(start: float, direction: int, limit: float, horizontal: bool) -> float:
+        # direction: +1 outward toward increasing coord, -1 decreasing
+        pos = start
+        dark_run = 0.0
+        last_bright = start
+        xs = [
+            int(minx + (maxx - minx) * t)
+            for t in (0.15, 0.3, 0.5, 0.7, 0.85)
+        ]
+        ys = [
+            int(miny + (maxy - miny) * t)
+            for t in (0.15, 0.3, 0.5, 0.7, 0.85)
+        ]
+        step = max(2.0, min(panel_w, panel_h) * 0.25)
+        traveled = 0.0
+        while traveled < limit:
+            pos += direction * step
+            traveled += step
+            if horizontal:
+                # walking in x; sample along y
+                if pos < 0 or pos >= img_w:
+                    break
+                frac = sum(
+                    1 for y in ys if 0 <= y < img_h and bri[y, int(pos)] >= thr
+                ) / max(len(ys), 1)
+            else:
+                if pos < 0 or pos >= img_h:
+                    break
+                frac = _bright_frac(xs, int(pos))
+            if frac >= 0.55:
+                dark_run = 0.0
+                last_bright = pos
+            else:
+                dark_run += step
+                if dark_run > gap_tol:
+                    break
+        return last_bright
+
+    new_maxy = max(maxy, _walk(maxy, +1, max_ext_y, horizontal=False))
+    new_miny = min(miny, _walk(miny, -1, max_ext_y, horizontal=False))
+    new_maxx = max(maxx, _walk(maxx, +1, max_ext_x, horizontal=True))
+    new_minx = min(minx, _walk(minx, -1, max_ext_x, horizontal=True))
+    # Cap by walk limits (brightness already stops at asphalt/trees).
+    w0, h0 = maxx - minx, maxy - miny
+    new_minx = max(new_minx, minx - max(w0 * 0.25, max_ext_x))
+    new_maxx = min(new_maxx, maxx + max(w0 * 0.25, max_ext_x))
+    new_miny = max(new_miny, miny - max(h0 * 0.25, max_ext_y))
+    new_maxy = min(new_maxy, maxy + max(h0 * 0.5, max_ext_y))
+    grown = box(new_minx, new_miny, new_maxx, new_maxy)
+    return grown if not grown.is_empty else hull
+
+
 def expand_flat_mask_roofs(
     roof_polygons: List[List[Point]],
     obstacles: List[List[Point]],
     meters_per_pixel: float,
     settings: Settings,
+    image_path: str | None = None,
 ) -> List[List[Point]]:
-    """Grow incomplete flat SAM masks to the membrane under nearby HVAC.
+    """Grow incomplete flat SAM masks to the full white roof membrane.
 
-    Live masks often stop mid-warehouse while equipment on the same white
-    roof sits just outside the outline — Preset 3 showed a large empty
-    strip inside the building. Hull the roof with on-band obstacles, then
-    extend edges that still stop at rim HVAC so packing reaches the parapet.
-    Skips distant parking/tree blobs.
+    Live masks often stop mid-warehouse while HVAC or leftover membrane sit
+    just outside the outline — Preset 3 left empty right/bottom strips.
+    Hull with on-band obstacles, pad past rim HVAC, then snap remaining
+    edges to bright membrane when an aerial path is available.
     """
     roofs = [_to_polygon(p) for p in roof_polygons]
     roofs = [r for r in roofs if r is not None]
@@ -311,6 +411,10 @@ def expand_flat_mask_roofs(
         else:
             hull = _extend_hull_past_rim_equipment(
                 hull, equipment, roof, panel_w, panel_h
+            )
+        if image_path:
+            hull = _snap_hull_to_bright_membrane(
+                hull, image_path, panel_w, panel_h
             )
         expanded.append(hull)
     return [_poly_to_points(r) for r in expanded if _poly_to_points(r)]
