@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getHealth, refineLayout, submitLead } from '../services/api'
+import { fetchPdf, getHealth, refineLayout, submitLead } from '../services/api'
 
 function mockFetchOnce({ ok, status = 200, json = {}, statusText = '' }) {
   globalThis.fetch = vi.fn().mockResolvedValue({
@@ -36,6 +36,11 @@ describe('api service', () => {
   it('surfaces server detail on error', async () => {
     mockFetchOnce({ ok: false, status: 400, json: { detail: 'Invalid email' } })
     await expect(submitLead({})).rejects.toThrow('Invalid email')
+  })
+
+  it('fetchPdf surfaces 404 detail for missing projects', async () => {
+    mockFetchOnce({ ok: false, status: 404, json: { detail: 'Project not found' } })
+    await expect(fetchPdf('solar_proj_old')).rejects.toThrow('Project not found')
   })
 
   it('refineLayout posts polygons to the refine endpoint', async () => {

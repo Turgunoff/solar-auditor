@@ -184,6 +184,9 @@ const co2TonnesPerYear = computed(() => {
           <h3>AI izohi</h3>
           <span class="eng-chip">{{ result.provider?.agent || result.provider?.segmentation || 'AI' }}</span>
         </div>
+        <p v-if="result.analytics.summary_stale" class="stale-note">
+          Sonlar yangilandi — quyidagi izoh dastlabki hisobga tegishli.
+        </p>
         <div class="narrative">
           <p>{{ showFull ? result.analytics.agent_summary : shortSummary }}</p>
           <button
@@ -341,6 +344,17 @@ const co2TonnesPerYear = computed(() => {
 }
 
 .verdict li { margin: 0.2rem 0; }
+
+.stale-note {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  margin: 0 0 0.5rem;
+}
 
 .more-btn {
   margin-top: 0.45rem;

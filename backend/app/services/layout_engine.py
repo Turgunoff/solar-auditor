@@ -263,6 +263,23 @@ def place_panels(
             packed, panel_id = _pack_oriented(geom, panel_w, panel_h, gap, panel_id)
             panels.extend(packed)
 
+    if not panels and (sam_overbox or pitched):
+        # SAM heuristics (20% shrink + south cut) can erase a small/flat
+        # roof entirely. Retry once with plain setback packing so a real
+        # roof never reports 0 panels while a usable area exists.
+        retry = place_panels(
+            roof_polygons,
+            obstacles,
+            width_px,
+            height_px,
+            meters_per_pixel,
+            settings,
+            sam_overbox=False,
+            pitched=False,
+        )
+        if retry.total_panels:
+            return retry
+
     return LayoutResult(
         total_panels=len(panels),
         panel_dimensions=PanelDimensions(

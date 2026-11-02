@@ -98,6 +98,12 @@ export function pdfUrl(projectId) {
   return `${BASE}/api/v1/export-pdf/${projectId}`
 }
 
+export async function fetchPdf(projectId) {
+  const res = await fetch(pdfUrl(projectId))
+  if (!res.ok) throw new Error(await parseError(res))
+  return res.blob()
+}
+
 export function assetUrl(path) {
   if (!path) return ''
   if (path.startsWith('http')) return path

@@ -8,10 +8,10 @@ import AnalyticsPanel from '../components/AnalyticsPanel.vue'
 import RenderModal from '../components/RenderModal.vue'
 import MapPicker from '../components/MapPicker.vue'
 import {
+  fetchPdf,
   getAssumptionDefaults,
   getHealth,
   getPresets,
-  pdfUrl,
   processMap,
   processPreset,
   processUpload,
@@ -198,7 +198,16 @@ async function onRefine() {
       assumptions: assumptions.value,
     })
     const summary = r.analytics.agent_summary
-    result.value = { ...r, layout: res.layout, analytics: { ...res.analytics, agent_summary: summary } }
+    result.value = {
+      ...r,
+      layout: res.layout,
+      analytics: {
+        ...res.analytics,
+        agent_summary: summary,
+        // Numbers changed after the AI note was written — flag it honestly.
+        summary_stale: res.layout.total_panels !== r.layout.total_panels,
+      },
+    }
     saveProject(result.value, `Refined (${userBoxes.value.length} zones)`)
     userBoxes.value = []
     drawMode.value = false
@@ -243,9 +252,20 @@ function reset() {
   mapOpen.value = false
 }
 
-function downloadPdf() {
+async function downloadPdf() {
   if (!result.value?.project_id) return
-  window.open(pdfUrl(result.value.project_id), '_blank')
+  try {
+    const blob = await fetchPdf(result.value.project_id)
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `solar-audit-${result.value.project_id}.pdf`
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  } catch (e) {
+    error.value = e.message || String(e)
+    modalOpen.value = false
+  }
 }
 
 watch(

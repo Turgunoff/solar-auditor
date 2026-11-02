@@ -37,6 +37,13 @@ export function friendlyError(raw) {
       raw: msg,
     }
   }
+  if (low.includes('project not found')) {
+    return {
+      title: 'Loyiha serverda topilmadi',
+      hint: 'Bu audit server yangilanishidan oldin qilingan bo‘lishi mumkin. Auditni qayta yurgizing — yangi loyiha saqlanadi va PDF ishlaydi.',
+      raw: msg,
+    }
+  }
   if (low.includes('fetch') || low.includes('network') || low.includes('failed to fetch')) {
     return {
       title: 'Server bilan aloqa uzildi',
