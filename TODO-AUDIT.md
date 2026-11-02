@@ -41,6 +41,11 @@ uchidan-ucchegacha tasdiqlanmagan.
       masshtabida ishlamagani. Preset'lar endi `pitched` bayrog'ini olib yuradi,
       flat tomda south-cut o'tkazib yuboriladi. Jonli test: 2 → 988 panel
       (sof `meta-sam-3.1`), overlay ko'z bilan tasdiqlandi. 39/39 yashil.
+- [x] Preset 3 incomplete SAM mask + packing strip (2026-11-02): jonli mask
+      warehouse o'rtasida to'xtab, HVAC tashqarida qolardi — yashil kontur ichida
+      katta bo'sh oq zona. `expand_flat_mask_roofs` HVAC bilan hull qiladi;
+      `_pack_oriented` 4-fazali offset qidiradi; flat mask envelope + medium
+      keepout. Endpoint expand'ni UI roof_polygons ga ham yozadi.
 - [x] Refine oqimi + shovqin filtri (2026-10-29): 1) Analyze → zona chizish →
       Place panels (`POST /api/v1/process/refine`, user qutilari tomga kesib
       olinadi); 2) tomga tegmagan katta to'siqlar (parking/yo'l/maysa) endi

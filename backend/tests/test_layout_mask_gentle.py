@@ -73,3 +73,26 @@ def test_mask_outlines_medium_obstacle_keepout():
     forbidden = box(160, 70, 240, 130).buffer(medium * 0.85)
     for p in gentle.panels:
         assert not forbidden.contains(Point(p.x, p.y)), p
+
+
+def test_expand_flat_mask_includes_nearby_hvac_strip():
+    from app.services.layout_engine import expand_flat_mask_roofs
+    from shapely.geometry import Polygon
+
+    s = Settings(use_mock=True)
+    # Roof stops at x=300; HVAC sits on membrane at x=310–380
+    roof = [[(0, 0), (300, 0), (300, 200), (0, 200)]]
+    hvac = [[(310, 80), (380, 80), (380, 140), (310, 140)]]
+    expanded = expand_flat_mask_roofs(roof, hvac, 0.05, s)
+    poly = Polygon(expanded[0])
+    assert poly.bounds[2] > 300  # grew past original right edge
+    # Packing on expanded roof should place more than the truncated mask alone
+    trunc = place_panels(
+        roof, hvac, 400, 200, 0.05, s,
+        sam_overbox=True, pitched=False, mask_outlines=True,
+    )
+    full = place_panels(
+        expanded, hvac, 400, 200, 0.05, s,
+        sam_overbox=True, pitched=False, mask_outlines=True,
+    )
+    assert full.total_panels > trunc.total_panels

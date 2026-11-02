@@ -4,6 +4,7 @@ import json
 import math
 import shutil
 import uuid
+from dataclasses import replace
 from typing import Optional
 
 import httpx
@@ -31,7 +32,11 @@ from app.api.schemas import (
 from app.core.config import Settings, get_settings
 from app.services.agent_report import get_agent_service
 from app.services.analytics import compute_analytics
-from app.services.layout_engine import place_panels, usable_area_m2
+from app.services.layout_engine import (
+    expand_flat_mask_roofs,
+    place_panels,
+    usable_area_m2,
+)
 from app.services.meta_client import MetaAPIError, MetaAPINotReady, get_meta_client
 from app.services.pdf_export import build_pdf
 from app.services.render_engine import get_render_service
@@ -181,8 +186,17 @@ def _run_pipeline(
     preset = next((p for p in PRESETS if p["id"] == preset_id), None)
     pitched = preset.get("pitched", True) if preset else True
 
+    roof_polys = seg.roof_polygons
+    if seg.mask_outlines and not pitched:
+        # Grow incomplete flat SAM masks so canvas green + packing match the
+        # full warehouse membrane (HVAC just outside the raw outline).
+        roof_polys = expand_flat_mask_roofs(
+            seg.roof_polygons, seg.obstacles, meters_per_pixel, settings
+        )
+        seg = replace(seg, roof_polygons=roof_polys)
+
     layout = place_panels(
-        seg.roof_polygons,
+        roof_polys,
         seg.obstacles,
         width,
         height,
@@ -193,7 +207,7 @@ def _run_pipeline(
         mask_outlines=seg.mask_outlines,
     )
     area = usable_area_m2(
-        seg.roof_polygons,
+        roof_polys,
         seg.obstacles,
         meters_per_pixel,
         settings,

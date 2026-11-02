@@ -91,33 +91,27 @@ def _shrink_sam_overbox(geom: Polygon, meters_per_pixel: float, setback_px: floa
     return shrunk if not shrunk.is_empty else geom
 
 
-def _pack_oriented(
+def _pack_at(
     geom: Polygon,
     panel_w: float,
     panel_h: float,
     gap: float,
-    start_id: int,
-) -> Tuple[List[Panel], int]:
-    """Pack panels aligned to geom's dominant roof orientation.
-
-    Panel.x / Panel.y are the panel center in image pixel space.
-    Panel.rotation is degrees CCW.
-    """
+    angle: float,
+    offset_x: float,
+    offset_y: float,
+) -> List[Panel]:
+    """One grid phase: panels fully inside geom, centers in world pixels."""
     if geom.is_empty or geom.area <= 0:
-        return [], start_id
-
-    angle = _rect_angle_deg(geom)
+        return []
     centroid = geom.centroid
     local = shp_rotate(geom, -angle, origin=centroid, use_radians=False)
     minx, miny, maxx, maxy = local.bounds
     step_x = panel_w + gap
     step_y = panel_h + gap
-
     panels: List[Panel] = []
-    panel_id = start_id
-    y = miny
+    y = miny + offset_y
     while y + panel_h <= maxy + 1e-6:
-        x = minx
+        x = minx + offset_x
         while x + panel_w <= maxx + 1e-6:
             candidate = box(x, y, x + panel_w, y + panel_h)
             if local.contains(candidate):
@@ -128,7 +122,7 @@ def _pack_oriented(
                 )
                 panels.append(
                     Panel(
-                        id=panel_id,
+                        id=0,
                         x=round(float(world.x), 2),
                         y=round(float(world.y), 2),
                         width=round(panel_w, 2),
@@ -136,10 +130,59 @@ def _pack_oriented(
                         rotation=round(angle % 180.0, 2),
                     )
                 )
-                panel_id += 1
             x += step_x
         y += step_y
+    return panels
 
+
+def _pack_oriented(
+    geom: Polygon,
+    panel_w: float,
+    panel_h: float,
+    gap: float,
+    start_id: int,
+) -> Tuple[List[Panel], int]:
+    """Pack panels; try roof-angle + axis-aligned, both orientations, 4 phases.
+
+    A single grid origin leaves an empty strip when the leftover width/height
+    is just under one module — commercial flat roofs showed this as a large
+    white patch inside the green roof outline. Searching phases fills it.
+    """
+    if geom.is_empty or geom.area <= 0:
+        return [], start_id
+
+    roof_angle = _rect_angle_deg(geom)
+    angles = []
+    for a in (roof_angle, 0.0, 90.0):
+        a = a % 180.0
+        if not any(abs(a - b) < 0.5 or abs(a - b) > 179.5 for b in angles):
+            angles.append(a)
+
+    best: List[Panel] = []
+    for w, h in ((panel_w, panel_h), (panel_h, panel_w)):
+        step_x = w + gap
+        step_y = h + gap
+        for angle in angles:
+            for ox in (0.0, step_x * 0.5):
+                for oy in (0.0, step_y * 0.5):
+                    packed = _pack_at(geom, w, h, gap, angle, ox, oy)
+                    if len(packed) > len(best):
+                        best = packed
+
+    panels: List[Panel] = []
+    panel_id = start_id
+    for p in best:
+        panels.append(
+            Panel(
+                id=panel_id,
+                x=p.x,
+                y=p.y,
+                width=p.width,
+                height=p.height,
+                rotation=p.rotation,
+            )
+        )
+        panel_id += 1
     return panels, panel_id
 
 
@@ -171,6 +214,58 @@ def _prefer_central_roofs(
             break
         kept.append(roof)
     return kept or [scored[0][1]]
+
+
+def _poly_to_points(poly: Polygon) -> List[Point]:
+    if poly.is_empty:
+        return []
+    if poly.geom_type == "MultiPolygon":
+        poly = max(poly.geoms, key=lambda g: g.area)
+    coords = list(poly.exterior.coords)
+    if len(coords) > 1 and coords[0] == coords[-1]:
+        coords = coords[:-1]
+    return [(float(x), float(y)) for x, y in coords]
+
+
+def expand_flat_mask_roofs(
+    roof_polygons: List[List[Point]],
+    obstacles: List[List[Point]],
+    meters_per_pixel: float,
+    settings: Settings,
+) -> List[List[Point]]:
+    """Grow incomplete flat SAM masks to the membrane under nearby HVAC.
+
+    Live masks often stop mid-warehouse while equipment on the same white
+    roof sits just outside the outline — Preset 3 showed a large empty
+    strip inside the building. Hull the roof with on-band obstacles, then
+    pack/subtract keepouts as usual. Skips distant parking/tree blobs.
+    """
+    roofs = [_to_polygon(p) for p in roof_polygons]
+    roofs = [r for r in roofs if r is not None]
+    if not roofs:
+        return roof_polygons
+    panel_w = settings.panel_width_m / meters_per_pixel
+    panel_h = settings.panel_height_m / meters_per_pixel
+    expanded: List[Polygon] = []
+    for roof in roofs:
+        minx, miny, maxx, maxy = roof.bounds
+        cands: List[Polygon] = [roof]
+        for pts in obstacles:
+            obs = _to_polygon(pts)
+            if obs is None or obs.area > roof.area * 0.12:
+                continue
+            ox1, oy1, ox2, oy2 = obs.bounds
+            if oy1 < miny - panel_h * 2 or oy2 > maxy + panel_h * 2:
+                continue
+            if ox2 < minx - panel_w * 4 or ox1 > maxx + panel_w * 4:
+                continue
+            if roof.buffer(panel_w * 3).intersects(obs) or (
+                miny <= float(obs.centroid.y) <= maxy
+            ):
+                cands.append(obs)
+        hull = unary_union(cands).minimum_rotated_rectangle
+        expanded.append(hull if not hull.is_empty else roof)
+    return [_poly_to_points(r) for r in expanded if _poly_to_points(r)]
 
 
 def place_panels(
@@ -258,9 +353,7 @@ def place_panels(
         if aggressive:
             usable = _shrink_sam_overbox(roof, meters_per_pixel, setback_px)
         elif mask_outlines and not pitched:
-            # Flat commercial: true SAM masks often omit a membrane strip on
-            # one side. Pack the oriented envelope (AABB-era full coverage)
-            # while obstacles still punch HVAC holes.
+            # Flat commercial: pack oriented envelope of (possibly expanded) mask.
             env = roof.minimum_rotated_rectangle
             usable = env.buffer(-setback_px) if setback_px > 0 else env
             if usable.is_empty:
