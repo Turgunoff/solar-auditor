@@ -227,6 +227,45 @@ def _poly_to_points(poly: Polygon) -> List[Point]:
     return [(float(x), float(y)) for x, y in coords]
 
 
+def _extend_hull_past_rim_equipment(
+    hull: Polygon,
+    equipment: List[Polygon],
+    original_roof: Polygon,
+    panel_w: float,
+    panel_h: float,
+) -> Polygon:
+    """Push hull edges outward when HVAC sits past the SAM mask rim.
+
+    SAM + HVAC hull often stops at the equipment box while the white
+    membrane continues several metres to the parapet (Preset 3 right strip).
+    Only pad sides where gear protrudes past the original mask — interior
+    HVAC on an already-correct edge must not grow into parking.
+    """
+    if hull.is_empty or not equipment or original_roof.is_empty:
+        return hull
+    minx, miny, maxx, maxy = hull.bounds
+    o_minx, o_miny, o_maxx, o_maxy = original_roof.bounds
+    rim_x = max(panel_w, 1.0)
+    rim_y = max(panel_h, 1.0)
+    # ~9 m of leftover membrane past rim gear at typical commercial scale.
+    pad_x = panel_w * 5.5
+    pad_y = panel_h * 5.5
+    for obs in equipment:
+        ox1, oy1, ox2, oy2 = obs.bounds
+        # Require meaningful protrusion past the SAM mask (ignore noise).
+        protrude = max(panel_w, panel_h) * 0.5
+        if ox2 >= maxx - rim_x and ox2 > o_maxx + protrude:
+            maxx = max(maxx, ox2 + pad_x)
+        if ox1 <= minx + rim_x and ox1 < o_minx - protrude:
+            minx = min(minx, ox1 - pad_x)
+        if oy2 >= maxy - rim_y and oy2 > o_maxy + protrude:
+            maxy = max(maxy, oy2 + pad_y)
+        if oy1 <= miny + rim_y and oy1 < o_miny - protrude:
+            miny = min(miny, oy1 - pad_y)
+    grown = box(minx, miny, maxx, maxy)
+    return grown if not grown.is_empty else hull
+
+
 def expand_flat_mask_roofs(
     roof_polygons: List[List[Point]],
     obstacles: List[List[Point]],
@@ -238,7 +277,8 @@ def expand_flat_mask_roofs(
     Live masks often stop mid-warehouse while equipment on the same white
     roof sits just outside the outline — Preset 3 showed a large empty
     strip inside the building. Hull the roof with on-band obstacles, then
-    pack/subtract keepouts as usual. Skips distant parking/tree blobs.
+    extend edges that still stop at rim HVAC so packing reaches the parapet.
+    Skips distant parking/tree blobs.
     """
     roofs = [_to_polygon(p) for p in roof_polygons]
     roofs = [r for r in roofs if r is not None]
@@ -250,6 +290,7 @@ def expand_flat_mask_roofs(
     for roof in roofs:
         minx, miny, maxx, maxy = roof.bounds
         cands: List[Polygon] = [roof]
+        equipment: List[Polygon] = []
         for pts in obstacles:
             obs = _to_polygon(pts)
             if obs is None or obs.area > roof.area * 0.12:
@@ -263,8 +304,15 @@ def expand_flat_mask_roofs(
                 miny <= float(obs.centroid.y) <= maxy
             ):
                 cands.append(obs)
+                equipment.append(obs)
         hull = unary_union(cands).minimum_rotated_rectangle
-        expanded.append(hull if not hull.is_empty else roof)
+        if hull.is_empty:
+            hull = roof
+        else:
+            hull = _extend_hull_past_rim_equipment(
+                hull, equipment, roof, panel_w, panel_h
+            )
+        expanded.append(hull)
     return [_poly_to_points(r) for r in expanded if _poly_to_points(r)]
 
 

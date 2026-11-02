@@ -86,6 +86,9 @@ def test_expand_flat_mask_includes_nearby_hvac_strip():
     expanded = expand_flat_mask_roofs(roof, hvac, 0.05, s)
     poly = Polygon(expanded[0])
     assert poly.bounds[2] > 300  # grew past original right edge
+    # Rim HVAC also pushes past the gear box toward the parapet
+    panel_w = s.panel_width_m / 0.05
+    assert poly.bounds[2] >= 380 + panel_w * 5
     # Packing on expanded roof should place more than the truncated mask alone
     trunc = place_panels(
         roof, hvac, 400, 200, 0.05, s,
@@ -96,3 +99,20 @@ def test_expand_flat_mask_includes_nearby_hvac_strip():
         sam_overbox=True, pitched=False, mask_outlines=True,
     )
     assert full.total_panels > trunc.total_panels
+
+
+def test_expand_rim_pad_reaches_preset3_style_membrane():
+    """Right-rim HVAC past the SAM mask must cover leftover white membrane."""
+    from app.services.layout_engine import expand_flat_mask_roofs
+    from shapely.geometry import Polygon
+
+    s = Settings(use_mock=True)
+    # Incomplete SAM stops mid-roof; HVAC sits further right on the membrane
+    roof = [[(250, 210), (1200, 210), (1200, 875), (250, 875)]]
+    hvac = [[(1228, 736), (1355, 736), (1355, 814), (1228, 814)]]
+    # Interior HVAC on the left must not pull the left edge into parking
+    interior = [[(400, 400), (500, 400), (500, 480), (400, 480)]]
+    expanded = expand_flat_mask_roofs(roof, [hvac[0], interior[0]], 0.05, s)
+    poly = Polygon(expanded[0])
+    assert poly.bounds[2] >= 1355 + 150  # covers leftover membrane strip
+    assert poly.bounds[0] >= 240  # left edge stays near original mask
