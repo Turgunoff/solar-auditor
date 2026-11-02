@@ -14,9 +14,42 @@ function mapsAuthMessage() {
   return window.__solarMapsAuthError || ''
 }
 
-/** Load Maps JavaScript API once (satellite picker + Places autocomplete). */
+/**
+ * Official Maps JS bootstrap — enables google.maps.importLibrary('maps'|'places').
+ * Required for PlaceAutocompleteElement (Places API New).
+ */
+function installBootstrap(key) {
+  if (typeof window === 'undefined') return
+  if (window.google?.maps?.importLibrary) return
+  // prettier-ignore
+  ;((g) => {
+    var h, a, k, p = 'The Google Maps JavaScript API', c = 'google', l = 'importLibrary', q = '__ib__', m = document, b = window
+    b = b[c] || (b[c] = {})
+    var d = b.maps || (b.maps = {}), r = new Set(), e = new URLSearchParams()
+    var u = () => h || (h = new Promise(async (f, n) => {
+      await (a = m.createElement('script'))
+      e.set('libraries', [...r] + '')
+      for (k in g) {
+        e.set(k.replace(/[A-Z]/g, (t) => '_' + t[0].toLowerCase()), g[k])
+      }
+      e.set('callback', c + '.maps.' + q)
+      a.src = `https://maps.${c}apis.com/maps/api/js?` + e
+      d[q] = f
+      a.onerror = () => (h = n(Error(p + ' could not load.')))
+      a.nonce = m.querySelector('script[nonce]')?.nonce || ''
+      m.head.append(a)
+    }))
+    if (d[l]) {
+      console.warn(p + ' only loads once. Ignoring:', g)
+    } else {
+      d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n))
+    }
+  })({ key, v: 'weekly' })
+}
+
+/** Load Maps JavaScript API once (satellite picker + Places Autocomplete New). */
 export function loadGoogleMaps(onAuthFailure) {
-  if (typeof window !== 'undefined' && window.google?.maps) {
+  if (typeof window !== 'undefined' && window.google?.maps?.Map && window.google?.maps?.importLibrary) {
     return Promise.resolve(window.google.maps)
   }
   const key = mapsKey()
@@ -29,38 +62,34 @@ export function loadGoogleMaps(onAuthFailure) {
     // Google calls this when the key is invalid / restricted / API disabled.
     window.gm_authFailure = () => {
       const msg =
-        'Google kalitni rad etdi: Cloud Console → APIs (Maps JavaScript, Places, Geocoding) yoqilganmi, ' +
-        'kalit cheklovlarida bu domen (https://cyberpitch.uz/*) bormi va billing ulanganmi — tekshiring.'
+        'Google kalitni rad etdi: Cloud Console → APIs (Maps JavaScript, Places API (New), Geocoding, Maps Static) yoqilganmi, ' +
+        'kalit cheklovlarida Places API (New) + bu domen (https://cyberpitch.uz/*) bormi va billing ulanganmi — tekshiring.'
       window.__solarMapsAuthError = msg
       onAuthFailure?.(new Error(msg))
     }
   }
 
-  loading = new Promise((resolve, reject) => {
-    const existing = document.querySelector('script[data-solar-maps]')
-    if (existing) {
-      existing.addEventListener('load', () => resolve(window.google.maps))
-      existing.addEventListener('error', () => reject(new Error('Maps script failed')))
-      return
+  installBootstrap(key)
+  loading = (async () => {
+    await window.google.maps.importLibrary('maps')
+    await window.google.maps.importLibrary('places')
+    if (mapsAuthMessage()) {
+      throw new Error(mapsAuthMessage())
     }
-    const script = document.createElement('script')
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=places&v=weekly`
-    script.async = true
-    script.defer = true
-    script.dataset.solarMaps = '1'
-    script.onload = () => {
-      // Give gm_authFailure a tick to record key errors first.
-      setTimeout(() => {
-        if (!window.google?.maps) {
-          reject(new Error(mapsAuthMessage() || 'Google Maps failed to initialize'))
-          return
-        }
-        resolve(window.google.maps)
-      }, 300)
+    if (!window.google?.maps) {
+      throw new Error('Google Maps failed to initialize')
     }
-    script.onerror = () => reject(new Error('Could not load Google Maps script'))
-    document.head.appendChild(script)
+    return window.google.maps
+  })().catch((err) => {
+    loading = null
+    throw err
   })
 
   return loading
+}
+
+/** Dynamic library import after bootstrap (e.g. 'places', 'maps', 'geocoding'). */
+export async function importMapsLibrary(name) {
+  await loadGoogleMaps()
+  return window.google.maps.importLibrary(name)
 }

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { loadGoogleMaps, mapsConfigured, mapsKey } from '../services/googleMaps'
+import { importMapsLibrary, loadGoogleMaps, mapsConfigured, mapsKey } from '../services/googleMaps'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -12,7 +12,7 @@ const emit = defineEmits(['close', 'capture'])
 const MIN_CAPTURE_ZOOM = 19
 
 const mapEl = ref(null)
-const searchEl = ref(null)
+const searchMount = ref(null)
 const ready = ref(false)
 const error = ref('')
 const placesMissing = ref(false)
@@ -23,9 +23,10 @@ const addressHint = ref('')
 
 let map = null
 let marker = null
-let autocomplete = null
+let placeAutocomplete = null
 let geocoder = null
-let suggestTimer = null
+let onPlaceSelect = null
+let onPlaceError = null
 
 const DEFAULT = { lat: 41.3111, lng: 69.2797 } // Tashkent fallback
 
@@ -36,6 +37,60 @@ const canCapture = computed(
 const geoSupported = computed(
   () => typeof navigator !== 'undefined' && Boolean(navigator.geolocation),
 )
+
+async function mountPlaceAutocomplete() {
+  if (!searchMount.value || placeAutocomplete) return
+  placesMissing.value = false
+
+  let PlaceAutocompleteElement
+  try {
+    const placesLib = await importMapsLibrary('places')
+    PlaceAutocompleteElement = placesLib.PlaceAutocompleteElement
+  } catch {
+    placesMissing.value = true
+    return
+  }
+
+  if (!PlaceAutocompleteElement) {
+    placesMissing.value = true
+    return
+  }
+
+  placeAutocomplete = new PlaceAutocompleteElement({
+    placeholder: 'Manzil qidirish…',
+    requestedRegion: 'uz',
+  })
+  placeAutocomplete.className = 'map-place-autocomplete'
+  searchMount.value.appendChild(placeAutocomplete)
+
+  onPlaceSelect = async (event) => {
+    try {
+      const prediction = event.placePrediction
+      if (!prediction?.toPlace) return
+      const place = prediction.toPlace()
+      await place.fetchFields({
+        fields: ['displayName', 'formattedAddress', 'location'],
+      })
+      const loc = place.location
+      if (!loc) return
+      placesMissing.value = false
+      error.value = ''
+      goTo(loc.lat(), loc.lng(), 20)
+      addressHint.value = place.formattedAddress || place.displayName || ''
+      if (addressHint.value) placeAutocomplete.value = addressHint.value
+    } catch (err) {
+      placesMissing.value = true
+      error.value = err?.message || 'Manzil tafsilotlarini olib bo‘lmadi.'
+    }
+  }
+
+  onPlaceError = () => {
+    placesMissing.value = true
+  }
+
+  placeAutocomplete.addEventListener('gmp-select', onPlaceSelect)
+  placeAutocomplete.addEventListener('gmp-error', onPlaceError)
+}
 
 async function initMap() {
   if (!props.open || map) return
@@ -89,38 +144,7 @@ async function initMap() {
       geocoder = new gmaps.Geocoder()
     }
 
-    if (searchEl.value && gmaps.places?.Autocomplete) {
-      autocomplete = new gmaps.places.Autocomplete(searchEl.value, {
-        fields: ['geometry', 'formatted_address', 'name'],
-      })
-      autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace()
-        const loc = place?.geometry?.location
-        if (!loc) return
-        placesMissing.value = false
-        goTo(loc.lat(), loc.lng(), 20)
-        addressHint.value = place.formatted_address || place.name || ''
-        if (searchEl.value && addressHint.value) {
-          searchEl.value.value = addressHint.value
-        }
-      })
-    } else if (searchEl.value) {
-      // Places library unavailable — searching would silently do nothing.
-      placesMissing.value = true
-    }
-
-    if (searchEl.value) {
-      // If the user types but Google returns no suggestions, the Places API
-      // is almost certainly disabled for the key — say so instead of silence.
-      searchEl.value.addEventListener('input', () => {
-        clearTimeout(suggestTimer)
-        const q = searchEl.value?.value?.trim() || ''
-        if (q.length < 3) return
-        suggestTimer = setTimeout(() => {
-          if (!document.querySelector('.pac-item')) placesMissing.value = true
-        }, 6000)
-      })
-    }
+    await mountPlaceAutocomplete()
 
     zoomLabel.value = map.getZoom() || 20
     ready.value = true
@@ -143,8 +167,8 @@ function fillAddress(lat, lng) {
   geocoder.geocode({ location: { lat, lng } }, (results, status) => {
     if (status !== 'OK' || !results?.[0]) return
     addressHint.value = results[0].formatted_address || ''
-    if (searchEl.value && addressHint.value) {
-      searchEl.value.value = addressHint.value
+    if (placeAutocomplete && addressHint.value) {
+      placeAutocomplete.value = addressHint.value
     }
   })
 }
@@ -239,9 +263,19 @@ async function useMyLocation() {
   }
 }
 
+function destroyPlaceAutocomplete() {
+  if (placeAutocomplete) {
+    if (onPlaceSelect) placeAutocomplete.removeEventListener('gmp-select', onPlaceSelect)
+    if (onPlaceError) placeAutocomplete.removeEventListener('gmp-error', onPlaceError)
+    placeAutocomplete.remove()
+  }
+  placeAutocomplete = null
+  onPlaceSelect = null
+  onPlaceError = null
+}
+
 function destroyMap() {
-  clearTimeout(suggestTimer)
-  autocomplete = null
+  destroyPlaceAutocomplete()
   geocoder = null
   marker = null
   map = null
@@ -319,12 +353,7 @@ defineExpose({
       </div>
 
       <div class="flex flex-wrap items-center gap-2 border-b border-slate-200/60 px-4 py-2">
-        <input
-          ref="searchEl"
-          type="text"
-          placeholder="Manzil qidirish…"
-          class="min-w-[180px] flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-cyan-500 focus:outline-none"
-        />
+        <div ref="searchMount" class="map-search-mount min-w-[180px] flex-1" />
         <button
           v-if="geoSupported"
           class="btn btn-ghost shrink-0"
@@ -351,8 +380,8 @@ defineExpose({
       </div>
 
       <div v-if="placesMissing && ready" class="mx-4 mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-        Manzil qidiruvi ishlamayapti — Cloud Console → API Library → <b>Places API</b> ni yoqing,
-        keyin sahifani yangilang. Ayni paytda xaritani sudrab borishingiz mumkin.
+        Manzil qidiruvi ishlamayapti — Cloud Console → API Library → <b>Places API (New)</b> ni yoqing,
+        kalit restrictionlariga ham qo‘shing, keyin sahifani yangilang. Ayni paytda xaritani sudrab borishingiz mumkin.
       </div>
 
       <div
@@ -386,3 +415,18 @@ defineExpose({
     </div>
   </div>
 </template>
+
+<style scoped>
+.map-search-mount {
+  display: flex;
+  align-items: stretch;
+}
+
+.map-search-mount :deep(.map-place-autocomplete),
+.map-search-mount :deep(gmp-place-autocomplete) {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  color-scheme: light;
+}
+</style>

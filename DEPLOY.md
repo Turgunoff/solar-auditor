@@ -40,6 +40,9 @@ For offline demo: `USE_MOCK=true` and no key needed.
 Frontend map key (optional): `VITE_GOOGLE_MAPS_API_KEY` is baked at build
 time — for production, pass it as a build arg or set it in GitHub variables.
 Without it the map picker stays hidden and presets/uploads still work.
+Map search needs **Places API (New)** enabled on the project and listed in
+the key's API restrictions (legacy Places Autocomplete is no longer available
+to new keys).
 
 First run:
 

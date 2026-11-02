@@ -147,3 +147,8 @@ uchidan-ucchegacha tasdiqlanmagan.
       uzatiladi). Qiya tomda janub yarmi qoidasi saqlanadi, lekin tom turi
       tanlovi (Qiya/Tekis) qo'shildi. Jonli E2E uzun binoda: pitched 150,
       flat 304 panel, hammasi tom ichida.
+- [x] MapPicker Places API (New) (2026-11-02): legacy `places.Autocomplete`
+      yangi loyihalarda `LegacyApiNotActivatedMapError` berardi (Cloud Console
+      da eski Places endi ko'rinmaydi). `PlaceAutocompleteElement` +
+      `importLibrary('places')` ga o'tkazildi; kalitda **Places API (New)**
+      restriction bo'lishi shart.

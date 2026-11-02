@@ -78,6 +78,7 @@ See `.env.example`. Important flags:
 | `MAX_UPLOAD_MB` / `MIN_UPLOAD_PX` / `MAX_UPLOAD_MP` | `15` / `64` / `50.0` | Upload guards |
 | `STATIC_RETENTION_DAYS` | `7` | Static cleanup window |
 | `RATE_LIMIT_PER_MINUTE` | `60` | Per-IP limit on process/lead endpoints |
+| `VITE_GOOGLE_MAPS_API_KEY` | empty | Optional map picker; needs Maps JS + **Places API (New)** + Geocoding + Static Maps on the key |
 
 ## API (`/api/v1`)
 
