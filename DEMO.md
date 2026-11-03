@@ -8,7 +8,7 @@ One-liner: “Upload a rooftop photo → Meta SAM segments usable area → auto 
 
 1. Open `https://cyberpitch.uz/api/v1/health`: `mode: live`, all three models should be `meta-*`.
 2. Refresh `/app` in the browser and leave Preset 1 staged (Run not clicked yet).
-3. Fallback: a pre-recorded video following the script in this file + a local `USE_MOCK=true` copy.
+3. Fallback: a local `USE_MOCK=true` copy of the same flow.
 
 ## Live evidence (2026-10-31, this repo)
 
@@ -16,19 +16,6 @@ One-liner: “Upload a rooftop photo → Meta SAM segments usable area → auto 
 - Live smoke (`USE_MOCK=false`): all three presets `seg=meta-sam-3.1` (pure live, no fallback) — 124 / 160 / 988 panels, `PASS`.
 - One full audit (`solar_proj_0dcc2d3c`): segmentation `meta-sam-3.1`, render `meta-muse-image-1.0`, agent `meta-muse-spark-1.3`; 124 panels, 49.6 kWp.
 - Production: `https://cyberpitch.uz/api/v1/health` → 200, `mode: live`.
-
-## 90–120 second video / live script
-
-| Time | Screen | Narration |
-|---|---|---|
-| 0:00–0:15 | Landing → **Open auditor** | “From a rooftop photo to a solar plant sketch in under a minute. Meta SAM 3.1 and Muse models behind it.” |
-| 0:15–0:35 | Select Preset 1 → **Run AI Audit** | “SAM separates the roof and obstacles. Green — roof, red — obstacles, blue — panels placed by the calculation engine. This is not image generation, it is Shapely geometry.” |
-| 0:35–0:55 | Canvas + Engineering metrics | “Panel count, kWp, annual kWh and payback — all come from the layout. The Muse image is only a concept; the reliable number is in the overlay.” |
-| 0:55–1:20 | **Draw exclusion zone** → **Place panels** | “The user draws an exclusion zone — the engine re-packs the panels. This is the interactive part for the seller–customer conversation.” |
-| 1:20–1:40 | **Estimate settings** → region/tariff/battery → **Recalculate** | “Assumptions are transparent: panel power, tariff, sun hours, battery and on/off-grid are recalculated live. Off-grid without a battery is rejected.” |
-| 1:40–2:00 | **View concept render** → **Download PDF report** | “Finally — a customer-ready PDF: before/after images, bill of materials and an honest disclaimer. Next step — on-site measurement.” |
-
-If a scene fails: if no roof is found, the system does not invent panels — it returns an honest 422 error. Present this not as a weakness but as a design decision.
 
 ## Pitch (1 page)
 

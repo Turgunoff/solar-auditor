@@ -20,3 +20,9 @@ backend/static/exports/*
 .idea/
 .vscode/
 generated_images/
+demo/hackathon-film/.env
+demo/*.mp4
+demo/hackathon-film/
+demo/frontier-180/
+demo/screencast-film/
+DEMO-VIDEO-SCRIPT.md
