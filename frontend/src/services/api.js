@@ -72,8 +72,8 @@ export async function processMap(coords) {
     const text = await imgRes.text().catch(() => '')
     if (imgRes.status === 403) {
       throw new Error(
-        'Sun’iy yo‘ldosh rasmini olishga ruxsat yo‘q (403). Cloud Console → API Library → ' +
-        '“Maps Static API” ni yoqing va kalit cheklovlariga (API restrictions) uni qo‘shing.',
+        'Not authorized to fetch the satellite image (403). In Cloud Console → API Library, ' +
+        'enable "Maps Static API" and add it to the key restrictions (API restrictions).',
       )
     }
     throw new Error(`Static Maps ${imgRes.status}: ${text.slice(0, 200) || imgRes.statusText}`)

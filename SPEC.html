@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TZ — AI Rooftop Solar Auditor & Engineering Engine</title>
+  <title>Technical Specification — AI Rooftop Solar Auditor & Engineering Engine</title>
   <style>
     :root {
       --bg: #f7f6f2;
@@ -361,36 +361,36 @@
         <span class="badge">Indie track · Push the Frontier</span>
         <span class="badge warn">SPEC v1.0 · 2026-10-26</span>
       </div>
-      <h1>Technical Specification (TZ)<br />AI Rooftop Solar Auditor &amp; Engineering Engine</h1>
+      <h1>Technical Specification<br />AI Rooftop Solar Auditor &amp; Engineering Engine</h1>
       <p class="lead">
-        Local-first prototip: aerofoto/sun’iy yo‘ldosh tasviridan tom chegarasini aniqlash,
-        to‘siqlarni segmentatsiya qilish, PV panellarini joylashtirish, energetika/ROI hisoblash
-        va Meta modellari (SAM 3.1, Muse Image/Spark/Wonder) bilan muhandislik hisobotini chiqarish.
+        Local-first prototype: detect the roof boundary from an aerial/satellite image,
+        segment obstacles, place PV panels, calculate energy/ROI,
+        and produce an engineering report with Meta models (SAM 3.1, Muse Image/Spark/Wonder).
       </p>
       <div class="meta-grid">
-        <div class="meta-card"><span>Loyiha</span><strong>solar-auditor</strong></div>
-        <div class="meta-card"><span>Trek</span><strong>Indie developer</strong></div>
+        <div class="meta-card"><span>Project</span><strong>solar-auditor</strong></div>
+        <div class="meta-card"><span>Track</span><strong>Indie developer</strong></div>
         <div class="meta-card"><span>Theme</span><strong>Push the Frontier</strong></div>
         <div class="meta-card"><span>Deadline</span><strong>4 Nov 2026, 21:00 ET</strong></div>
       </div>
     </header>
 
-    <nav class="toc" aria-label="Mundarija">
-      <h2>Mundarija</h2>
+    <nav class="toc" aria-label="Contents">
+      <h2>Contents</h2>
       <ol>
-        <li><a href="#s1">Maqsad va strategiya</a></li>
-        <li><a href="#s2">Texnologiyalar</a></li>
-        <li><a href="#s3">Repo arxitekturasi</a></li>
+        <li><a href="#s1">Objective &amp; strategy</a></li>
+        <li><a href="#s2">Technology stack</a></li>
+        <li><a href="#s3">Repository architecture</a></li>
         <li><a href="#s4">End-to-end pipeline</a></li>
-        <li><a href="#s5">Meta AI integratsiya</a></li>
+        <li><a href="#s5">Meta AI integration</a></li>
         <li><a href="#s6">Layout &amp; analytics</a></li>
-        <li><a href="#s7">API shartnomasi</a></li>
+        <li><a href="#s7">API contract</a></li>
         <li><a href="#s8">Frontend UI/UX</a></li>
         <li><a href="#s9">PDF export</a></li>
-        <li><a href="#s10">NFR &amp; xavfsizlik</a></li>
+        <li><a href="#s10">NFR &amp; security</a></li>
         <li><a href="#s11">Acceptance criteria</a></li>
-        <li><a href="#s12">Milestone rejasi</a></li>
-        <li><a href="#s13">Hakaton submission</a></li>
+        <li><a href="#s12">Milestone plan</a></li>
+        <li><a href="#s13">Hackathon submission</a></li>
         <li><a href="#s14">Agent execution</a></li>
       </ol>
     </nav>
@@ -399,34 +399,34 @@
     <section id="s1">
       <h2>1. Project Overview &amp; Objective</h2>
       <p>
-        Qurilishi kerak bo‘lgan mahsulot — <strong>AI Rooftop Solar Auditor &amp; Engineering Engine</strong>:
-        foydalanuvchi aerofoto yuklaydi yoki preset tanlaydi; tizim tom yuzalarini va to‘siqlarni
-        (mo‘ri, lyuk, HVAC) ajratadi; standart PV panellarini algoritmik joylashtiradi; kWp / kWh / ROI
-        hisoblaydi; photoreal “after” render va PDF muhandislik hisobotini beradi.
+        The product to build — <strong>AI Rooftop Solar Auditor &amp; Engineering Engine</strong>:
+        the user uploads an aerial photo or picks a preset; the system separates roof surfaces and obstacles
+        (chimneys, skylights, HVAC); it places standard PV panels algorithmically; calculates kWp / kWh / ROI;
+        and returns a photoreal “after” render and a PDF engineering report.
       </p>
 
       <div class="callout ok">
-        <strong class="label">Hakaton strategiyasi (muhim)</strong>
-        Demo asosida <strong>haqiqiy Meta Model API</strong> bo‘lishi shart (SAM 3.1 + kamida bitta Muse model).
-        Mock/Adapter faqat offline fallback va CI uchun. Default konfiguratsiya: API key bo‘lsa live,
-        bo‘lmasa mock — UI va business logic o‘zgarmaydi.
+        <strong class="label">Hackathon strategy (important)</strong>
+        The demo must be based on the <strong>real Meta Model API</strong> (SAM 3.1 + at least one Muse model).
+        Mock/Adapter is only an offline fallback and for CI. Default configuration: live if an API key is present,
+        otherwise mock — UI and business logic do not change.
       </div>
 
       <h3>1.1 Success definition (MVP)</h3>
       <ul>
-        <li>3 ta preset + custom upload ishlaydi.</li>
-        <li>Canvasda: tom (yashil), to‘siq (qizil), panel grid (ko‘k) ko‘rinadi.</li>
-        <li>Analytics: capacity, annual gen, cost, savings, ROI hisoblanadi.</li>
-        <li>PDF yuklab olinadi; Muse Image (yoki mock) render URL qaytadi.</li>
-        <li><code>USE_MOCK</code> / API key orqali live/mock almashtirish bitta config bilan.</li>
+        <li>3 presets + custom upload work.</li>
+        <li>On the canvas: roof (green), obstacles (red), panel grid (blue) are visible.</li>
+        <li>Analytics: capacity, annual generation, cost, savings, ROI are calculated.</li>
+        <li>PDF is downloaded; Muse Image (or mock) render URL is returned.</li>
+        <li>Live/mock switching via <code>USE_MOCK</code> / API key with a single config.</li>
       </ul>
 
-      <h3>1.2 Non-goals (MVP dan tashqari)</h3>
+      <h3>1.2 Non-goals (out of MVP scope)</h3>
       <ul>
-        <li>GIS georeferensiya / haqiqiy GPS orthophoto pipeline.</li>
-        <li>To‘liq 3D BIM / CAD export.</li>
+        <li>GIS georeferencing / real GPS orthophoto pipeline.</li>
+        <li>Full 3D BIM / CAD export.</li>
         <li>Multi-user auth, billing, production cloud deploy.</li>
-        <li>Real-time shading simulation (kelajak feature sifatida qayd etiladi).</li>
+        <li>Real-time shading simulation (noted as a future feature).</li>
       </ul>
     </section>
 
@@ -435,7 +435,7 @@
       <h2>2. Technology Stack</h2>
       <table>
         <thead>
-          <tr><th>Qatlam</th><th>Tanlov</th><th>Izoh</th></tr>
+          <tr><th>Layer</th><th>Choice</th><th>Note</th></tr>
         </thead>
         <tbody>
           <tr>
@@ -456,22 +456,22 @@
           <tr>
             <td>AI adapters</td>
             <td>Meta Model API: SAM 3.1, Muse Image, Muse Spark/Wonder</td>
-            <td>Mock fallback majburiy</td>
+            <td>Mock fallback required</td>
           </tr>
           <tr>
             <td>Frontend</td>
             <td><strong>Vue 3</strong> (Composition API) + Vite + Tailwind</td>
-            <td>React o‘rniga Vue — TZ da bir tanlov; o‘zgartirmaslik</td>
+            <td>Vue instead of React — one choice in this spec; do not change</td>
           </tr>
           <tr>
             <td>Canvas</td>
-            <td>HTML5 Canvas (asosiy) yoki Konva.js</td>
+            <td>HTML5 Canvas (primary) or Konva.js</td>
             <td>Zoom/pan, polygon + panel overlay</td>
           </tr>
           <tr>
             <td>State / storage</td>
-            <td>In-memory dict + diskdagi <code>static/</code></td>
-            <td>SQLite ixtiyoriy; MVP uchun memory yetarli</td>
+            <td>In-memory dict + <code>static/</code> on disk</td>
+            <td>SQLite optional; in-memory is enough for the MVP</td>
           </tr>
         </tbody>
       </table>
@@ -481,7 +481,7 @@
     <section id="s3">
       <h2>3. Repository Architecture</h2>
       <pre><code>solar-auditor/
-├── SPEC.html                    # Ushbu texnik topshiriq
+├── SPEC.html                    # This technical specification
 ├── README.md
 ├── .env.example
 ├── backend/
@@ -534,14 +534,14 @@
           <div class="n">1</div>
           <div>
             <h4>Upload &amp; Detect</h4>
-            <p>JPG/PNG upload yoki 3 preset. Validatsiya, <code>project_id</code>, dimensions.</p>
+            <p>JPG/PNG upload or 3 presets. Validation, <code>project_id</code>, dimensions.</p>
           </div>
         </div>
         <div class="step">
           <div class="n">2</div>
           <div>
             <h4>AI Segmentation (SAM 3.1)</h4>
-            <p>Zero-shot: roof planes + obstacles → polygon vektorlar.</p>
+            <p>Zero-shot: roof planes + obstacles → polygon vectors.</p>
           </div>
         </div>
         <div class="step">
@@ -555,17 +555,17 @@
           <div class="n">4</div>
           <div>
             <h4>Analytics + Muse render + Agent report + PDF</h4>
-            <p>KPI hisoblash, photoreal “after”, qisqa engineering narrative, PDF.</p>
+            <p>KPI calculation, photoreal “after”, short engineering narrative, PDF.</p>
           </div>
         </div>
       </div>
 
       <h3>4.1 Step 1 — Image ingestion</h3>
       <ul>
-        <li><strong>Preset 1:</strong> <code>residential_gable.jpg</code> — oddiy ikki tomonlama tom.</li>
-        <li><strong>Preset 2:</strong> <code>complex_hip.jpg</code> — ko‘p qirrali hip roof.</li>
-        <li><strong>Preset 3:</strong> <code>commercial_flat_hvac.jpg</code> — tekis tom + HVAC to‘siqlar.</li>
-        <li>Max file size: <strong>15 MB</strong>. Format: JPEG/PNG. MIME tekshiruvi majburiy.</li>
+        <li><strong>Preset 1:</strong> <code>residential_gable.jpg</code> — simple gable roof.</li>
+        <li><strong>Preset 2:</strong> <code>complex_hip.jpg</code> — multi-face hip roof.</li>
+        <li><strong>Preset 3:</strong> <code>commercial_flat_hvac.jpg</code> — flat roof + HVAC obstacles.</li>
+        <li>Max file size: <strong>15 MB</strong>. Format: JPEG/PNG. MIME check required.</li>
       </ul>
 
       <h3>4.2 Step 2 — Segmentation output</h3>
@@ -576,17 +576,17 @@
       </div>
       <ul>
         <li><code>roof_polygons</code>: <code>List[List[Tuple[x,y]]]</code> — image pixel coords.</li>
-        <li><code>obstacles</code>: xuddi shu format.</li>
-        <li>Kamida 1 ta roof polygon; obstacles bo‘sh bo‘lishi mumkin.</li>
+        <li><code>obstacles</code>: same format.</li>
+        <li>At least 1 roof polygon; obstacles may be empty.</li>
       </ul>
 
       <h3>4.3 Step 3 — Layout engine rules</h3>
       <ul>
         <li>Panel physical size: <strong>1.7 m × 1.0 m</strong>.</li>
-        <li>Pixel scale MVP: har bir preset uchun fixed <code>meters_per_pixel</code> (config yoki preset metadata). Custom upload uchun default <code>0.05 m/px</code> (sozlanadigan).</li>
+        <li>Pixel scale MVP: fixed <code>meters_per_pixel</code> per preset (config or preset metadata). Default <code>0.05 m/px</code> for custom uploads (configurable).</li>
         <li>Setback / obstacle buffer: <strong>0.3 m</strong>.</li>
-        <li>Grid: axis-aligned per roof polygon (rotation = roof dominant edge angle, MVP da 0° yoki polygon long-edge).</li>
-        <li>Panel obstacle yoki tashqi chegaraga chiksa — discard.</li>
+        <li>Grid: axis-aligned per roof polygon (rotation = roof dominant edge angle, 0° or polygon long edge in the MVP).</li>
+        <li>If a panel crosses an obstacle or the outer boundary — discard.</li>
       </ul>
       <p>Usable area:</p>
       <pre><code>Usable = RoofPolygon.difference(unary_union(Obstacles).buffer(setback_px))</code></pre>
@@ -622,7 +622,7 @@
           </tr>
         </tbody>
       </table>
-      <p>Barcha konstantalar <code>config.py</code> da markazlashtirilgan bo‘lsin.</p>
+      <p>All constants must be centralized in <code>config.py</code>.</p>
     </section>
 
     <!-- 5 -->
@@ -632,11 +632,11 @@
       <h3>5.1 Config</h3>
       <pre><code># .env / config.py
 USE_MOCK=false                 # true → force mock
-META_API_KEY=...               # bo‘sh bo‘lsa auto-mock
+META_API_KEY=...               # if empty, auto-mock
 META_API_BASE_URL=https://...  # Meta Model API base
 SAM_MODEL=sam-3.1
 MUSE_IMAGE_MODEL=muse-image
-MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
+MUSE_TEXT_MODEL=muse-spark     # or muse-wonder</code></pre>
 
       <h3>5.2 Segmentation adapter</h3>
       <p>Interface:</p>
@@ -652,21 +652,21 @@ MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
 
       <h4>Live (SAM 3.1)</h4>
       <ul>
-        <li>Zero-shot promptlar (yoki API talab qiladigan format):
+        <li>Zero-shot prompts (or the format the API requires):
           <ul>
             <li>Roof: <em>“pitched or flat roof surfaces suitable for solar panels”</em></li>
             <li>Obstacles: <em>“chimneys, skylights, HVAC units, vents on the roof”</em></li>
           </ul>
         </li>
-        <li>Mask → contour (OpenCV ixtiyoriy; MVP da API polygon qaytarsa to‘g‘ridan-to‘g‘ri; aks holda mask raster + simple contour).</li>
-        <li>Timeout: 60s. Xato → controlled error + UI da aniq xabar; ixtiyoriy mock fallback faqat <code>ALLOW_MOCK_FALLBACK=true</code> bo‘lsa.</li>
+        <li>Mask → contour (OpenCV optional; in the MVP use the API polygon directly if returned; otherwise mask raster + simple contour).</li>
+        <li>Timeout: 60s. Error → controlled error + clear message in the UI; optional mock fallback only if <code>ALLOW_MOCK_FALLBACK=true</code>.</li>
       </ul>
 
       <h4>Mock</h4>
       <ul>
-        <li>Image aspect ratio asosida ishonchli polygonlar (preset_id bo‘yicha farqli shablonlar).</li>
-        <li>Har bir preset uchun kamida 1–2 roof plane va 1–4 obstacle.</li>
-        <li>Provider field: <code>"mock"</code> — UI statusda ko‘rinsin.</li>
+        <li>Plausible polygons based on image aspect ratio (different templates per preset_id).</li>
+        <li>At least 1–2 roof planes and 1–4 obstacles per preset.</li>
+        <li>Provider field: <code>"mock"</code> — must be visible in the UI status.</li>
       </ul>
 
       <h3>5.3 Render adapter (Muse Image)</h3>
@@ -679,23 +679,23 @@ MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
     ) -> str:  # relative URL under /static/renders/
         ...</code></pre>
       <ul>
-        <li><strong>Live:</strong> aerial + panel layout tavsifi bilan photoreal “rooftop with installed solar panels” generatsiya.</li>
-        <li><strong>Mock:</strong> Pillow bilan panel to‘rtburchaklarini original rasm ustiga chizib JPEG saqlash (demo hech qachon bo‘sh qolmasin).</li>
+        <li><strong>Live:</strong> photoreal “rooftop with installed solar panels” generation from the aerial + panel layout description.</li>
+        <li><strong>Mock:</strong> draw panel rectangles over the original image with Pillow and save as JPEG (the demo must never be empty).</li>
       </ul>
 
       <h3>5.4 Agent report (Muse Spark / Wonder)</h3>
       <ul>
         <li>Input: panel count, capacity, obstacles count, roof area estimate, ROI.</li>
-        <li>Output: 120–180 so‘zlik engineering summary (risklar, tavsiya, next steps).</li>
+        <li>Output: 120–180 word engineering summary (risks, recommendation, next steps).</li>
         <li>Mock: template string + interpolated numbers.</li>
-        <li>Response schema maydoni: <code>analytics.agent_summary</code>.</li>
+        <li>Response schema field: <code>analytics.agent_summary</code>.</li>
       </ul>
 
       <div class="callout warn">
-        <strong class="label">Hakaton demo talabi</strong>
-        Submission video/livestreamda status barida
-        <code>Meta SAM 3.1: Live</code> va <code>Muse Image: Live</code> ko‘rinishi afzal.
-        Faqat mock bilan yuborish — yutuq ehtimolini pasaytiradi.
+        <strong class="label">Hackathon demo requirement</strong>
+        In the submission video/livestream, showing
+        <code>Meta SAM 3.1: Live</code> and <code>Muse Image: Live</code> in the status bar is preferred.
+        Submitting with mock only lowers the chance of winning.
       </div>
     </section>
 
@@ -704,20 +704,20 @@ MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
       <h2>6. Layout Engine &amp; Analytics Detail</h2>
       <h3>6.1 Panel placement algorithm (MVP)</h3>
       <ol>
-        <li>Har bir roof polygon uchun Shapely <code>Polygon</code> yaratish.</li>
+        <li>Create a Shapely <code>Polygon</code> for each roof polygon.</li>
         <li>Obstacles union + buffer.</li>
         <li><code>usable = roof.difference(obstacles_buffered)</code>.</li>
-        <li>Usable bounding box bo‘ylab grid step = panel_w_px + gap_px (gap default 2 px).</li>
-        <li>Har bir candidate <code>box(x, y, x+w, y+h)</code> uchun:
-          <code>usable.contains(panel)</code> yoki <code>panel.within(usable)</code> — true bo‘lsa accept.</li>
+        <li>Grid step across the usable bounding box = panel_w_px + gap_px (gap default 2 px).</li>
+        <li>For each candidate <code>box(x, y, x+w, y+h)</code>:
+          accept if <code>usable.contains(panel)</code> or <code>panel.within(usable)</code> is true.</li>
         <li>Panel record: <code>{id, x, y, width, height, rotation}</code> — x,y = top-left pixel.</li>
       </ol>
 
       <h3>6.2 Analytics module</h3>
       <ul>
-        <li>Barcha floatlar 1–2 kasr aniqligida round.</li>
-        <li><code>roi_years</code>: savings ≤ 0 bo‘lsa <code>null</code> + UI da “N/A”.</li>
-        <li>Qo‘shimcha maydonlar (ixtiyoriy MVP+): <code>usable_area_m2</code>, <code>panel_density</code>.</li>
+        <li>Round all floats to 1–2 decimal places.</li>
+        <li><code>roi_years</code>: if savings ≤ 0, <code>null</code> + “N/A” in the UI.</li>
+        <li>Additional fields (optional MVP+): <code>usable_area_m2</code>, <code>panel_density</code>.</li>
       </ul>
     </section>
 
@@ -750,7 +750,7 @@ MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
 }</code></pre>
 
       <h3>7.3 <code>POST /api/process</code></h3>
-      <p>Ikki variant (biri majburiy):</p>
+      <p>Two variants (one required):</p>
       <ul>
         <li><code>multipart/form-data</code>: field <code>file</code> (UploadFile)</li>
         <li><code>application/json</code>: <code>{"preset_id": "residential_gable"}</code></li>
@@ -793,7 +793,7 @@ MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
       <h3>7.4 <code>GET /api/export-pdf/{project_id}</code></h3>
       <ul>
         <li>Response: <code>application/pdf</code> binary stream.</li>
-        <li>404 agar project topilmasa.</li>
+        <li>404 if the project is not found.</li>
         <li>Filename: <code>solar-audit-{project_id}.pdf</code>.</li>
       </ul>
 
@@ -808,8 +808,8 @@ MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
       <h3>8.1 Visual direction</h3>
       <ul>
         <li>Dark engineering console: bg <code>#0F172A</code>, cards <code>#1E293B</code>, accent cyan <code>#06B6D4</code> / emerald <code>#10B981</code>.</li>
-        <li>Typography: Inter yoki system-ui (MVP). Status chip’lar aniq o‘qiladi.</li>
-        <li>Birinchi viewport: title + model status + controls + canvas + analytics — bitta ish oqimi.</li>
+        <li>Typography: Inter or system-ui (MVP). Status chips must be clearly readable.</li>
+        <li>First viewport: title + model status + controls + canvas + analytics — a single workflow.</li>
       </ul>
 
       <h3>8.2 Layout blocks</h3>
@@ -824,9 +824,9 @@ MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
 
       <h3>8.3 Interaction rules</h3>
       <ul>
-        <li>Run AI Audit bosilganda loading state (skeleton yoki progress text).</li>
-        <li>Xatolik toast/banner — silent fail yo‘q.</li>
-        <li>Reset: canvas + analytics tozalash, project_id drop.</li>
+        <li>Loading state when Run AI Audit is clicked (skeleton or progress text).</li>
+        <li>Error toast/banner — no silent failures.</li>
+        <li>Reset: clear canvas + analytics, drop project_id.</li>
         <li>Responsive: ≥1100px two-column; mobile stacked.</li>
       </ul>
 
@@ -858,14 +858,14 @@ MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
     <section id="s10">
       <h2>10. Non-Functional Requirements</h2>
       <table>
-        <thead><tr><th>NFR</th><th>Talab</th></tr></thead>
+        <thead><tr><th>NFR</th><th>Requirement</th></tr></thead>
         <tbody>
-          <tr><td>Offline / local</td><td>Mock mode da internetsiz to‘liq demo</td></tr>
+          <tr><td>Offline / local</td><td>Full demo without internet in mock mode</td></tr>
           <tr><td>Latency (mock)</td><td>Process &lt; 2s</td></tr>
           <tr><td>Latency (live)</td><td>Best-effort; UI timeout messaging 90s</td></tr>
-          <tr><td>Secrets</td><td>API key faqat env; repo ga commit qilinmasin</td></tr>
-          <tr><td>Logging</td><td>provider, latency_ms, project_id (PII yo‘q)</td></tr>
-          <tr><td>Code quality</td><td>Type hints (Python), oddiy modul chegaralari</td></tr>
+          <tr><td>Secrets</td><td>API key only in env; never commit to the repo</td></tr>
+          <tr><td>Logging</td><td>provider, latency_ms, project_id (no PII)</td></tr>
+          <tr><td>Code quality</td><td>Type hints (Python), clean module boundaries</td></tr>
         </tbody>
       </table>
     </section>
@@ -874,13 +874,13 @@ MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
     <section id="s11">
       <h2>11. Acceptance Criteria (Definition of Done)</h2>
       <ol class="checklist">
-        <li><code>uvicorn</code> + <code>npm run dev</code> README bo‘yicha ishga tushadi</li>
-        <li>3 presetning har biri panel grid + analytics qaytaradi</li>
-        <li>Custom upload ishlaydi</li>
-        <li>Canvas overlaylar to‘g‘ri chiziladi</li>
-        <li>PDF download ishlaydi</li>
-        <li><code>USE_MOCK=true</code> da 100% local</li>
-        <li>API key + <code>USE_MOCK=false</code> da segmentation/render adapter live path chaqiriladi (yoki aniq stub TODO + hujjat)</li>
+        <li><code>uvicorn</code> + <code>npm run dev</code> start as described in the README</li>
+        <li>Each of the 3 presets returns a panel grid + analytics</li>
+        <li>Custom upload works</li>
+        <li>Canvas overlays are drawn correctly</li>
+        <li>PDF download works</li>
+        <li>100% local with <code>USE_MOCK=true</code></li>
+        <li>With an API key + <code>USE_MOCK=false</code> the segmentation/render adapter live path is called (or an explicit stub TODO + docs)</li>
         <li>README: setup, env, demo script (60s), Meta model usage</li>
       </ol>
     </section>
@@ -889,7 +889,7 @@ MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
     <section id="s12">
       <h2>12. Implementation Milestones</h2>
       <table>
-        <thead><tr><th>#</th><th>Milestone</th><th>Natija</th></tr></thead>
+        <thead><tr><th>#</th><th>Milestone</th><th>Outcome</th></tr></thead>
         <tbody>
           <tr><td>M0</td><td>Scaffold</td><td>Repo, deps, health endpoint, empty Vue shell</td></tr>
           <tr><td>M1</td><td>Mock pipeline</td><td>presets → segment mock → layout → analytics → JSON</td></tr>
@@ -911,8 +911,8 @@ MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
         <li><strong>Models used:</strong> SAM 3.1, Muse Image, Muse Spark/Wonder</li>
         <li><strong>Demo script (60–90s):</strong>
           <ol>
-            <li>Preset 3 (commercial HVAC) ochish</li>
-            <li>Run AI Audit — qizil to‘siqlar + panel grid</li>
+            <li>Open Preset 3 (commercial HVAC)</li>
+            <li>Run AI Audit — red obstacles + panel grid</li>
             <li>Metrics + agent summary</li>
             <li>View render → Download PDF</li>
             <li>Status: Live providers</li>
@@ -925,11 +925,11 @@ MUSE_TEXT_MODEL=muse-spark     # yoki muse-wonder</code></pre>
     <section id="s14">
       <h2>14. Execution Directives for Coding Agent</h2>
       <ol>
-        <li>Ushbu <code>SPEC.html</code> ni manba haqiqat deb hisobla; ziddiyat bo‘lsa shu hujjat ustun.</li>
-        <li>Avval M0→M1→M2 tartibida; Meta live wiring M4 da, lekin adapter interfeyslari M1 dan mavjud bo‘lsin.</li>
-        <li>Frontend: <strong>Vue 3</strong> (React ga o‘girilmasin).</li>
-        <li>Sample images: 3 ta haqiqiy/realistic aerial roof JPG (agar real rasm bo‘lmasa — yuqori sifatli placeholder + aniq mock polygons).</li>
-        <li>Start scripts README da:
+        <li>Treat this <code>SPEC.html</code> as the source of truth; if there is a conflict, this document wins.</li>
+        <li>First in M0→M1→M2 order; Meta live wiring in M4, but adapter interfaces must exist from M1.</li>
+        <li>Frontend: <strong>Vue 3</strong> (do not switch to React).</li>
+        <li>Sample images: 3 real/realistic aerial roof JPGs (if no real image — high-quality placeholder + precise mock polygons).</li>
+        <li>Start scripts in the README:
           <pre><code># backend
 cd backend && pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
@@ -937,14 +937,14 @@ uvicorn app.main:app --reload --port 8000
 # frontend
 cd frontend && npm install && npm run dev</code></pre>
         </li>
-        <li>Secretlarni commit qilma. <code>.env.example</code> yarat.</li>
-        <li>Har milestone oxirida qo‘lda tekshirish: health → process preset → canvas → pdf.</li>
+        <li>Do not commit secrets. Create <code>.env.example</code>.</li>
+        <li>Manual check at the end of each milestone: health → process preset → canvas → pdf.</li>
       </ol>
 
       <div class="callout ok">
-        <strong class="label">Keyingi qadam</strong>
-        Ushbu SPEC tasdiqlangach agent M0 scaffold bilan boshlaydi:
-        backend FastAPI skeleton + Vue Vite app + mock segmentation/layout end-to-end.
+        <strong class="label">Next step</strong>
+        Once this SPEC is approved, the agent starts with the M0 scaffold:
+        backend FastAPI skeleton + Vue Vite app + mock segmentation/layout end to end.
       </div>
     </section>
 

@@ -62,8 +62,8 @@ export function loadGoogleMaps(onAuthFailure) {
     // Google calls this when the key is invalid / restricted / API disabled.
     window.gm_authFailure = () => {
       const msg =
-        'Google kalitni rad etdi: Cloud Console → APIs (Maps JavaScript, Places API (New), Geocoding, Maps Static) yoqilganmi, ' +
-        'kalit cheklovlarida Places API (New) + bu domen (https://cyberpitch.uz/*) bormi va billing ulanganmi — tekshiring.'
+        'Google rejected the key: in Cloud Console → APIs, check that Maps JavaScript, Places API (New), Geocoding, and Maps Static are enabled, ' +
+        'that the key restrictions include Places API (New) + this domain (https://cyberpitch.uz/*), and that billing is enabled.'
       window.__solarMapsAuthError = msg
       onAuthFailure?.(new Error(msg))
     }

@@ -4,52 +4,52 @@ export function friendlyError(raw) {
   const low = msg.toLowerCase()
   if (low.includes('no usable roof') || low.includes('no roof')) {
     return {
-      title: 'Tom topilmadi',
-      hint: 'Rasmda tom aniqlanmadi. Bitta binoga yaqinroq kesma yuklang yoki tayyor presetdan boshlang.',
+      title: 'No roof found',
+      hint: 'No roof was detected in the image. Upload a tighter crop of a single building or start with a preset.',
       raw: msg,
     }
   }
   if (low.includes('zoom too far') || low.includes('zoom')) {
     return {
-      title: 'Masshtab juda kichik',
-      hint: 'Xaritada bitta binoni kattalashtiring (zoom 19+) va qayta urining.',
+      title: 'Scale too small',
+      hint: 'Zoom in on a single building on the map (zoom 19+) and try again.',
       raw: msg,
     }
   }
   if (low.includes('too large') || low.includes('too small') || low.includes('corrupt')) {
     return {
-      title: 'Rasm qabul qilinmadi',
-      hint: 'JPEG/PNG, kamida 64px va 15MB dan kichik rasm yuklang.',
+      title: 'Image not accepted',
+      hint: 'Upload a JPEG/PNG image at least 64px and under 15 MB.',
       raw: msg,
     }
   }
   if (low.includes('battery') || low.includes('offgrid') || low.includes('off-grid')) {
     return {
-      title: 'Batareya kerak',
-      hint: 'Off-grid rejim uchun Estimate settings da batareya hajmini (kWh) kiriting.',
+      title: 'Battery required',
+      hint: 'For off-grid mode, enter a battery size (kWh) in Estimate settings.',
       raw: msg,
     }
   }
   if (low.includes('region')) {
     return {
-      title: 'Noma’lum region',
-      hint: 'Estimate settings da ro‘yxatdagi regionni tanlang.',
+      title: 'Unknown region',
+      hint: 'Select a region from the list in Estimate settings.',
       raw: msg,
     }
   }
   if (low.includes('project not found')) {
     return {
-      title: 'Loyiha serverda topilmadi',
-      hint: 'Bu audit server yangilanishidan oldin qilingan bo‘lishi mumkin. Auditni qayta yurgizing — yangi loyiha saqlanadi va PDF ishlaydi.',
+      title: 'Project not found on server',
+      hint: 'This audit may predate a server update. Run the audit again — the new project will be saved and the PDF will work.',
       raw: msg,
     }
   }
   if (low.includes('fetch') || low.includes('network') || low.includes('failed to fetch')) {
     return {
-      title: 'Server bilan aloqa uzildi',
-      hint: 'Backend ishlayotganini tekshirib, qayta urining. Demo uchun presetlar oflayn ham ishlaydi.',
+      title: 'Connection to server lost',
+      hint: 'Check that the backend is running and try again. Presets work offline for the demo.',
       raw: msg,
     }
   }
-  return { title: 'Xatolik yuz berdi', hint: 'Qayta urining yoki presetdan boshlang.', raw: msg }
+  return { title: 'Something went wrong', hint: 'Try again or start with a preset.', raw: msg }
 }

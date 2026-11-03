@@ -1,49 +1,49 @@
-# Demo paketi — AI Rooftop Solar Auditor
+# Demo package — AI Rooftop Solar Auditor
 
-Hakaton: Meta Global AI Developer Hackathon · Track: Indie developer · Theme: Push the Frontier.
-Jonli manzil: https://cyberpitch.uz (zaxira: http://51.12.209.235:8080).
+Hackathon: Meta Global AI Developer Hackathon · Track: Indie developer · Theme: Push the Frontier.
+Live URL: https://cyberpitch.uz (fallback: http://51.12.209.235:8080).
 One-liner: “Upload a rooftop photo → Meta SAM segments usable area → auto panel layout + Muse photoreal after + ROI PDF in under a minute.”
 
-## Tayyorgarlik (demo dan 10 daqiqa oldin)
+## Preparation (10 minutes before the demo)
 
-1. `https://cyberpitch.uz/api/v1/health` oching: `mode: live`, uchala model `meta-*` bo'lsin.
-2. Brauzerda `/app` ni yangilab, Preset 1 staged holatda tursin (hali Run bosilmagan).
-3. Zaxira: shu fayldagi ssenariy bo'yicha oldindan yozilgan video + lokal `USE_MOCK=true` nusxa.
+1. Open `https://cyberpitch.uz/api/v1/health`: `mode: live`, all three models should be `meta-*`.
+2. Refresh `/app` in the browser and leave Preset 1 staged (Run not clicked yet).
+3. Fallback: a pre-recorded video following the script in this file + a local `USE_MOCK=true` copy.
 
-## Jonli dalil (2026-10-31, shu repo)
+## Live evidence (2026-10-31, this repo)
 
-- `GET https://api.meta.ai/v1/models` → 200, ro'yxatda `sam-3.1`, `muse-spark-1.3`, `muse-wonder-1.0`.
-- Jonli smoke (`USE_MOCK=false`): uchala preset `seg=meta-sam-3.1` (sof jonli, fallback siz) — 124 / 160 / 988 panel, `PASS`.
-- Bitta to'liq audit (`solar_proj_0dcc2d3c`): segmentation `meta-sam-3.1`, render `meta-muse-image-1.0`, agent `meta-muse-spark-1.3`; 124 panel, 49.6 kWp.
-- Ishlab chiqarish: `https://cyberpitch.uz/api/v1/health` → 200, `mode: live`.
+- `GET https://api.meta.ai/v1/models` → 200, listing `sam-3.1`, `muse-spark-1.3`, `muse-wonder-1.0`.
+- Live smoke (`USE_MOCK=false`): all three presets `seg=meta-sam-3.1` (pure live, no fallback) — 124 / 160 / 988 panels, `PASS`.
+- One full audit (`solar_proj_0dcc2d3c`): segmentation `meta-sam-3.1`, render `meta-muse-image-1.0`, agent `meta-muse-spark-1.3`; 124 panels, 49.6 kWp.
+- Production: `https://cyberpitch.uz/api/v1/health` → 200, `mode: live`.
 
-## 90–120 soniyalik video / jonli ssenariy
+## 90–120 second video / live script
 
-| Vaqt | Ekran | Aytiladigan matn |
+| Time | Screen | Narration |
 |---|---|---|
-| 0:00–0:15 | Landing → **Open auditor** | “Tom suratidan quyosh stansiyasi eskizigacha — bir daqiqadan kam. Orqada Meta SAM 3.1 va Muse modellari.” |
-| 0:15–0:35 | Preset 1 tanlash → **AI Auditni boshlash** | “SAM tom va to'siqlarni ajratadi. Yashil — tom, qizil — to'siq, ko'k — hisob-kitob dvigateli joylagan panellar. Bu rasm generatsiyasi emas, Shapely geometriyasi.” |
-| 0:35–0:55 | Canvas + Engineering metrics | “Panellar soni, kWp, yillik kWh va o'zini oqlash muddati — hammasi layout dan keladi. Muse surati faqat koncept; ishonchli son — overlay da.” |
-| 0:55–1:20 | **Taqiqlangan zona chizish** → **Panellarni joylash** | “Foydalanuvchi taqiqlangan zonani chizadi — dvigatel panellarni qayta joylaydi. Bu sotuvchi va mijoz suhbati uchun interaktiv qism.” |
-| 1:20–1:40 | **Hisob sozlamalari** → region/tarif/batareya → **Qayta hisoblash** | “Taxminlar shaffof: panel quvvati, tarif, quyosh soati, batareya va on/off-grid jonli qayta hisoblanadi. Off-grid batareyasiz rad etiladi.” |
-| 1:40–2:00 | **Konsept renderni ko'rish** → **PDF hisobotni yuklash** | “Yakunda — mijozga beriladigan PDF: oldin/keyin rasmlari, materiallar ro'yxati va halol disclaimer bilan. Keyingi qadam — joyida o'lchov.” |
+| 0:00–0:15 | Landing → **Open auditor** | “From a rooftop photo to a solar plant sketch in under a minute. Meta SAM 3.1 and Muse models behind it.” |
+| 0:15–0:35 | Select Preset 1 → **Run AI Audit** | “SAM separates the roof and obstacles. Green — roof, red — obstacles, blue — panels placed by the calculation engine. This is not image generation, it is Shapely geometry.” |
+| 0:35–0:55 | Canvas + Engineering metrics | “Panel count, kWp, annual kWh and payback — all come from the layout. The Muse image is only a concept; the reliable number is in the overlay.” |
+| 0:55–1:20 | **Draw exclusion zone** → **Place panels** | “The user draws an exclusion zone — the engine re-packs the panels. This is the interactive part for the seller–customer conversation.” |
+| 1:20–1:40 | **Estimate settings** → region/tariff/battery → **Recalculate** | “Assumptions are transparent: panel power, tariff, sun hours, battery and on/off-grid are recalculated live. Off-grid without a battery is rejected.” |
+| 1:40–2:00 | **View concept render** → **Download PDF report** | “Finally — a customer-ready PDF: before/after images, bill of materials and an honest disclaimer. Next step — on-site measurement.” |
 
-Muvaffaqiyatsiz sahna bo'lsa: tom topilmasa tizim panel uydirmaydi — 422 bilan halol xato beradi. Bu zaiflik emas, dizayn qarori sifatida aytilsin.
+If a scene fails: if no roof is found, the system does not invent panels — it returns an honest 422 error. Present this not as a weakness but as a design decision.
 
-## Pitch matni (1 sahifa)
+## Pitch (1 page)
 
-**Muammo.** Quyosh paneli sotuvchisi har bir tom uchun soatlab qo'lda o'lchov qiladi; mijoz esa taklifni haftalab kutadi.
+**Problem.** A solar panel seller spends hours on manual measurement for every roof; the customer waits weeks for a quote.
 
-**Yechim.** AI Rooftop Solar Auditor: bitta aerofoto yoki xarita kesmasi yuklanadi. Meta SAM 3.1 tom va to'siqlarni segmentlaydi, geometrik dvigatel (Shapely) panellarni janubiy yuzaga, chekinishlar bilan joylaydi, Muse Image «keyin» holatini fotoreal ko'rsatadi, Muse Spark esa ehtiyotkor muhandislik izohini yozadi. Natija — panel soni, kWp, yillik ishlab chiqarish, narx, o'zini oqlash va PDF hisobot.
+**Solution.** AI Rooftop Solar Auditor: upload a single aerial photo or map crop. Meta SAM 3.1 segments the roof and obstacles, the geometric engine (Shapely) places panels on the southern face with setbacks, Muse Image shows the “after” state photorealistically, and Muse Spark writes a cautious engineering note. The result — panel count, kWp, annual generation, price, payback and a PDF report.
 
-**Nega endi / nega Meta.** SAM ning zero-shot segmentatsiyasi o'qitilgan maxsus modelsiz har qanday tomda ishlaydi; Muse esa sotuv suhbatini vizual qiladi. Uchala model bitta adapter qatlamida (`meta_client.py`), mock rejimda esa internetsiz ham to'liq demo ishlaydi.
+**Why now / why Meta.** SAM's zero-shot segmentation works on any roof without a trained custom model; Muse makes the sales conversation visual. All three models sit behind a single adapter layer (`meta_client.py`), and in mock mode the full demo also runs without internet.
 
-**Halollik.** Bu bank hisoboti emas: sonlar qat'iy taxminlarga tayanadi, disclaimer har ekranda va PDF da bor. Tom topilmasa, tizim jim panel chizmaydi.
+**Honesty.** This is not a bankable report: the numbers rest on strict assumptions, and the disclaimer is present on every screen and in the PDF. If no roof is found, the system does not silently draw panels.
 
-**Keyingi qadam.** Mintaqaviy quyosh/tarif presetlari (bor), installer bilan joyida tekshiruv, keyin taklif (quote) oqimi.
+**Next step.** Regional sun/tariff presets (available), on-site verification with an installer, then the quote flow.
 
-## Hakam savollariga qisqa javoblar
+## Short answers to judge questions
 
-- “Sonlarni AI o'ylab topadimi?” — Yo'q. Panellarni deterministik geometriya joylaydi; AI segmentatsiya, vizual va matn uchun.
-- “Jonlimi yoki mock?” — Standart rejim jonli (`meta-sam-3.1` chiplari ekranda). Tarmoq uzilsa, fallback yorlig'i ochiq ko'rinadi.
-- “Aniqlik qancha?” — Bu feasibility eskizi: masshtab xarita/preset dan, ishlab chiqarish quyosh soati taxminidan. Bankable hisob uchun joyida o'lchov shart — mahsulot buni yashirmaydi.
+- “Does AI invent the numbers?” — No. Deterministic geometry places the panels; AI is for segmentation, visuals, and text.
+- “Live or mock?” — The default mode is live (`meta-sam-3.1` chips on screen). If the network drops, the fallback label is shown openly.
+- “How accurate is it?” — This is a feasibility sketch: scale comes from the map/preset, generation from a sun-hours assumption. Bankable calculations require an on-site survey — the product does not hide this.

@@ -17,8 +17,8 @@ defineProps({
   <div>
     <header class="eng-topbar">
       <div class="flex items-center gap-2.5">
-        <RouterLink to="/" class="btn btn-ghost back-btn" title="Bosh sahifaga qaytish">← Orqaga</RouterLink>
-        <RouterLink to="/" class="eng-logo" title="Bosh sahifa">★</RouterLink>
+        <RouterLink to="/" class="btn btn-ghost back-btn" title="Back to home">← Back</RouterLink>
+        <RouterLink to="/" class="eng-logo" title="Home">★</RouterLink>
         <div class="leading-tight">
           <h1>AI Rooftop Solar Auditor</h1>
           <p>v3.4-PRO</p>
@@ -30,14 +30,14 @@ defineProps({
           class="eng-badge"
           :class="mode === 'live' ? 'eng-badge-live' : 'eng-badge-mock'"
         >
-          <i />Meta SAM 3.1: {{ mode === 'live' ? 'Jonli' : 'Mock' }}
+          <i />Meta SAM 3.1: {{ mode === 'live' ? 'Live' : 'Mock' }}
         </span>
         <span class="eng-badge eng-badge-idle">
-          <i />Muse: {{ runProviders?.agent ? 'Ishlatildi' : 'Kutmoqda' }}
+          <i />Muse: {{ runProviders?.agent ? 'Used' : 'Waiting' }}
         </span>
-        <span class="eng-badge eng-badge-mode">{{ mode === 'live' ? 'Jonli rejim' : 'Demo rejim' }}</span>
-        <RouterLink to="/setup" class="eng-link">Sozlamalar</RouterLink>
-        <RouterLink to="/projects" class="eng-link">Loyihalarim</RouterLink>
+        <span class="eng-badge eng-badge-mode">{{ mode === 'live' ? 'Live mode' : 'Demo mode' }}</span>
+        <RouterLink to="/setup" class="eng-link">Settings</RouterLink>
+        <RouterLink to="/projects" class="eng-link">My projects</RouterLink>
       </div>
     </header>
     <div

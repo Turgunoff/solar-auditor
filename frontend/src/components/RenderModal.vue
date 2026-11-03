@@ -30,15 +30,15 @@ function sameImage(result) {
     <div class="card max-h-[92vh] w-full max-w-4xl overflow-auto p-4">
       <div class="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 class="text-lg font-semibold text-slate-900">Vizualizatsiya</h3>
+          <h3 class="text-lg font-semibold text-slate-900">Visualization</h3>
           <p class="text-xs text-slate-500">
-            {{ result.layout.total_panels }} ta panel · Loyiha {{ result.project_id }}
+            {{ result.layout.total_panels }} panels · Project {{ result.project_id }}
           </p>
         </div>
-        <button class="btn btn-ghost" type="button" @click="$emit('close')">Yopish</button>
+        <button class="btn btn-ghost" type="button" @click="$emit('close')">Close</button>
       </div>
 
-      <p class="mb-1 text-sm font-bold text-slate-800">1 · Aniq joylashuv (hisob shunga asoslanadi)</p>
+      <p class="mb-1 text-sm font-bold text-slate-800">1 · Exact layout (the estimate is based on this)</p>
       <img
         :src="layoutSrc(result)"
         alt="Layout engine overlay"
@@ -46,21 +46,21 @@ function sameImage(result) {
       />
 
       <template v-if="!sameImage(result)">
-        <p class="mb-1 mt-4 text-sm font-bold text-slate-800">2 · Konsept ko‘rinish (faqat tasavvur uchun)</p>
+        <p class="mb-1 mt-4 text-sm font-bold text-slate-800">2 · Concept view (for illustration only)</p>
         <img
           :src="museSrc(result)"
           alt="Muse concept render"
           class="w-full rounded-lg border border-slate-200"
         />
         <p class="mt-2 text-[11px] text-slate-500">
-          Muse surati — fotoreal konsept. U panel soni va o‘rnini biroz o‘zgartirishi mumkin;
-          ishonchli variant — yuqoridagi aniq joylashuv.
+          Muse image — photoreal concept. It may slightly change panel count and placement;
+          the exact layout above is the source of truth.
         </p>
       </template>
 
       <div class="mt-4 flex justify-end gap-2">
         <button class="btn btn-primary" type="button" @click="$emit('download-pdf')">
-          PDF hisobotni yuklash
+          Download PDF report
         </button>
       </div>
     </div>

@@ -57,7 +57,7 @@ async function mountPlaceAutocomplete() {
   }
 
   placeAutocomplete = new PlaceAutocompleteElement({
-    placeholder: 'Manzil qidirish…',
+    placeholder: 'Search address…',
     requestedRegion: 'uz',
   })
   placeAutocomplete.className = 'map-place-autocomplete'
@@ -80,7 +80,7 @@ async function mountPlaceAutocomplete() {
       if (addressHint.value) placeAutocomplete.value = addressHint.value
     } catch (err) {
       placesMissing.value = true
-      error.value = err?.message || 'Manzil tafsilotlarini olib bo‘lmadi.'
+      error.value = err?.message || 'Could not load address details.'
     }
   }
 
@@ -96,7 +96,7 @@ async function initMap() {
   if (!props.open || map) return
   error.value = ''
   if (!mapsConfigured()) {
-    error.value = 'Xarita kaliti sozlanmagan — preset yoki rasm yuklashdan foydalaning. (Dev: VITE_GOOGLE_MAPS_API_KEY + Vite restart)'
+    error.value = 'Map key is not configured — use a preset or image upload instead. (Dev: VITE_GOOGLE_MAPS_API_KEY + restart Vite)'
     return
   }
   try {
@@ -175,11 +175,11 @@ function fillAddress(lat, lng) {
 
 function geoErrorMessage(err) {
   const messages = {
-    1: 'Joylashuv ruxsati berilmadi. Brauzerda Allow bosing yoki manzilni qidiring.',
-    2: 'Joylashuvni aniqlab bo‘lmadi. Manzilni qidiruvdan yozing.',
-    3: 'Joylashuv vaqti tugadi. Wi‑Fi/GPS yoqing yoki manzilni qidiring.',
+    1: 'Location permission denied. Click Allow in the browser or search for an address.',
+    2: 'Could not determine location. Enter an address in search.',
+    3: 'Location timed out. Turn on Wi-Fi/GPS or search for an address.',
   }
-  return messages[err?.code] || err?.message || 'Joylashuv olinmadi'
+  return messages[err?.code] || err?.message || 'Location unavailable'
 }
 
 function applyPosition(pos) {
@@ -200,7 +200,7 @@ function getPosition(options) {
 async function useMyLocation() {
   if (!map || locating.value) return
   if (!navigator.geolocation) {
-    error.value = 'Brauzer geolokatsiyani qo‘llab-quvvatlamaydi. Manzilni qidiruvdan yozing.'
+    error.value = 'Browser does not support geolocation. Enter an address in search.'
     return
   }
   locating.value = true
@@ -259,7 +259,7 @@ async function useMyLocation() {
   } catch (err) {
     locating.value = false
     error.value =
-      'Joylashuvni topib bo‘lmadi (GPS ham, tarmoq ham). Manzilni qidiruvdan yozing — masalan, "London, UK".'
+      'Could not find location (neither GPS nor network). Enter an address in search — e.g. "London, UK".'
   }
 }
 
@@ -295,7 +295,7 @@ function onCapture() {
   if (!map || capturing.value) return
   const zoom = map.getZoom() || 0
   if (zoom < MIN_CAPTURE_ZOOM) {
-    error.value = `Juda uzoq (zoom ${zoom}). Bitta bino uchun kamida zoom ${MIN_CAPTURE_ZOOM} kerak.`
+    error.value = `Too far out (zoom ${zoom}). Zoom to at least ${MIN_CAPTURE_ZOOM} for a single building.`
     return
   }
   const c = map.getCenter()
@@ -361,7 +361,7 @@ defineExpose({
           :disabled="!ready || locating || capturing"
           @click="useMyLocation"
         >
-          {{ locating ? 'Aniqlanmoqda…' : 'Mening joylashuvim' }}
+          {{ locating ? 'Locating…' : 'My location' }}
         </button>
         <span
           class="rounded-md px-2 py-1 text-xs font-semibold"
@@ -380,8 +380,8 @@ defineExpose({
       </div>
 
       <div v-if="placesMissing && ready" class="mx-4 mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-        Manzil qidiruvi ishlamayapti — Cloud Console → API Library → <b>Places API (New)</b> ni yoqing,
-        kalit restrictionlariga ham qo‘shing, keyin sahifani yangilang. Ayni paytda xaritani sudrab borishingiz mumkin.
+        Address search is not working — in Cloud Console → API Library, enable <b>Places API (New)</b>,
+        add it to the key restrictions, then reload the page. In the meantime, you can drag the map.
       </div>
 
       <div
@@ -389,8 +389,8 @@ defineExpose({
         class="mx-4 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800"
       >
         <span>
-          Juda uzoqdasiz — butun mahalla/tuman kadrga tushadi. Natija ishonchsiz bo‘ladi.
-          Kamida zoom {{ MIN_CAPTURE_ZOOM }} qiling.
+          You are too far out — a whole neighborhood/block fits in frame. The result will be unreliable.
+          Zoom to at least {{ MIN_CAPTURE_ZOOM }}.
         </span>
         <button class="btn btn-ghost shrink-0" type="button" @click="zoomCloser">
           Zoom closer
@@ -401,7 +401,7 @@ defineExpose({
 
       <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 px-4 py-3">
         <p class="text-xs text-slate-500">
-          Capture faqat zoom ≥ {{ MIN_CAPTURE_ZOOM }} da ochiladi.
+          Capture is only available at zoom ≥ {{ MIN_CAPTURE_ZOOM }}.
         </p>
         <button
           class="btn btn-primary"

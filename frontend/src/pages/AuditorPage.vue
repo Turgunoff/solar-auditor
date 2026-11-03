@@ -42,10 +42,10 @@ const friendly = computed(() => (error.value ? friendlyError(error.value) : null
 // Full-stage "AI is working" animation for the first audit run only
 // (refine keeps the existing result on screen instead).
 const GEN_STEPS = [
-  'Tom chegarasi aniqlanmoqda · SAM 3.1',
-  'To‘siqlar belgilanmoqda',
-  'Panellar joylanmoqda',
-  'Hisobot va render tayyorlanmoqda · Muse',
+  'Detecting roof boundary · SAM 3.1',
+  'Marking obstacles',
+  'Placing panels',
+  'Preparing report and render · Muse',
 ]
 const genStep = ref(0)
 let genTimer = null
@@ -87,9 +87,9 @@ const selectedPreset = computed(() =>
 const activeStep = computed(() => (result.value ? 3 : staged.value.kind ? 2 : 1))
 
 const steps = computed(() => [
-  { n: 1, title: 'Manbani tanlang', hint: 'Preset, rasm yoki xarita' },
-  { n: 2, title: 'AI Audit', hint: loading.value ? 'Tahlil ketmoqda…' : 'Tom va panellar hisoblanadi' },
-  { n: 3, title: 'Natija', hint: 'Sozlang, render va PDF oling' },
+  { n: 1, title: 'Choose source', hint: 'Preset, image, or map' },
+  { n: 2, title: 'AI Audit', hint: loading.value ? 'Analyzing…' : 'Roof and panels are calculated' },
+  { n: 3, title: 'Result', hint: 'Adjust, get render and PDF' },
 ])
 
 const canRun = computed(() => !!staged.value.kind && !loading.value)
@@ -327,7 +327,7 @@ onMounted(bootstrap)
       @reset="reset"
     />
 
-    <ol class="steps" aria-label="Audit bosqichlari">
+    <ol class="steps" aria-label="Audit steps">
       <li
         v-for="s in steps"
         :key="s.n"
@@ -343,20 +343,20 @@ onMounted(bootstrap)
     </ol>
 
     <div v-if="!staged.kind && !result" class="guide">
-      <b>Qanday ishlaydi?</b>
-      Chapdan tayyor tomni tanlang, o'zingizning aerofotongizni yuklang yoki xaritadan binoni belgilang.
-      Keyin yashil <b>AI Auditni boshlash</b> tugmasini bosing — qolganini AI bajaradi:
-      tomni topadi, panellarni joylaydi, narx va o'zini oqlash muddatini hisoblaydi.
+      <b>How does it work?</b>
+      Pick a preset roof on the left, upload your own aerial photo, or mark a building on the map.
+      Then click the green <b>Run AI Audit</b> button — the AI does the rest:
+      it finds the roof, places the panels, and calculates cost and payback.
     </div>
 
     <div v-if="stageLabel && !result && !loading" class="mx-4 mt-3 text-sm text-slate-600 md:mx-6">
-      Tanlandi: <b class="text-slate-900">{{ stageLabel }}</b> — ko'rib chiqing, keyin
-      <b>AI Auditni boshlash</b> tugmasini bosing.
+      Selected: <b class="text-slate-900">{{ stageLabel }}</b> — review it, then
+      click <b>Run AI Audit</b>.
     </div>
 
     <div v-if="loading && result" class="loading-note" role="status">
       <span class="spinner" aria-hidden="true" />
-      <span><b>Qayta hisoblanmoqda…</b></span>
+      <span><b>Recalculating…</b></span>
     </div>
 
     <div v-if="loading && !result" class="gen-stage" role="status" aria-live="polite">
@@ -377,7 +377,7 @@ onMounted(bootstrap)
         </svg>
         <span class="gen-scan" />
       </div>
-      <p class="gen-title">AI tahlil qilmoqda<span class="gen-dots"><i>.</i><i>.</i><i>.</i></span></p>
+      <p class="gen-title">AI is analyzing<span class="gen-dots"><i>.</i><i>.</i><i>.</i></span></p>
       <p class="gen-step" :key="genStep">{{ GEN_STEPS[genStep] }}</p>
       <div class="gen-progress" aria-hidden="true">
         <span
@@ -387,17 +387,17 @@ onMounted(bootstrap)
           :class="{ on: i <= genStep }"
         />
       </div>
-      <p class="gen-hint">Jonli rejimda odatda 30–60 soniya. Sahifani yopmang.</p>
+      <p class="gen-hint">In live mode this usually takes 30–60 seconds. Do not close this page.</p>
     </div>
 
     <div v-if="result && !loading" class="result-banner" role="status">
       <span class="result-main">
-        <b>{{ panelCount }} ta panel</b> · {{ result.analytics.system_capacity_kw }} kWp ·
-        yiliga ~{{ Math.round(result.analytics.annual_generation_kwh).toLocaleString() }} kWh
+        <b>{{ panelCount }} panels</b> · {{ result.analytics.system_capacity_kw }} kWp ·
+        ~{{ Math.round(result.analytics.annual_generation_kwh).toLocaleString() }} kWh/year
       </span>
       <span class="result-actions">
-        <button class="btn btn-ghost" type="button" @click="modalOpen = true">Renderni ko'rish</button>
-        <button class="btn btn-primary" type="button" @click="downloadPdf">PDF hisobot</button>
+        <button class="btn btn-ghost" type="button" @click="modalOpen = true">View render</button>
+        <button class="btn btn-primary" type="button" @click="downloadPdf">PDF report</button>
       </span>
     </div>
 
@@ -410,14 +410,14 @@ onMounted(bootstrap)
       <p class="mt-0.5">{{ friendly.hint }}</p>
       <p v-if="friendly.raw && friendly.raw !== friendly.title" class="mt-1 text-xs text-rose-500">{{ friendly.raw }}</p>
       <div class="mt-2 flex flex-wrap gap-2">
-        <button class="btn btn-ghost" type="button" @click="error = ''">Yopish</button>
+        <button class="btn btn-ghost" type="button" @click="error = ''">Close</button>
         <button
           v-if="presets.length"
           class="btn btn-ghost"
           type="button"
           @click="error = ''; onSelectPreset(presets[0].id)"
         >
-          Preset 1 dan boshlash
+          Start with Preset 1
         </button>
       </div>
     </div>
@@ -427,35 +427,35 @@ onMounted(bootstrap)
       class="mx-4 mb-3 mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 md:mx-6"
       role="status"
     >
-      <b>0 ta panel joylashdi.</b> Tom maydoni juda kichik yoki to'siqlar bilan yopilgan bo'lishi mumkin.
-      Kattaroq kesma yuklang, exclusion zonalarni tozalang yoki presetda sinab ko'ring.
+      <b>0 panels placed.</b> The roof area may be too small or covered by obstacles.
+      Upload a larger crop, clear the exclusion zones, or try a preset.
     </div>
 
-    <!-- Step 3 · Aniqlash (natijadan keyin) -->
+    <!-- Step 3 · Refine (after result) -->
     <div v-if="result" class="mx-4 mb-3 mt-3 flex flex-wrap items-center gap-2 md:mx-6">
       <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
-        3 · Aniqlaş
+        3 · Refine
       </span>
-      <span class="roof-toggle" role="group" aria-label="Tom turi">
+      <span class="roof-toggle" role="group" aria-label="Roof type">
         <button
           type="button"
           class="roof-opt"
           :class="{ on: effectivePitched }"
           :disabled="loading"
-          title="Qiya tom: faqat janubiy/quyoshli yarmiga panel qo'yiladi"
+          title="Pitched roof: panels only on the southern/sunny half"
           @click="setRoofType('pitched')"
         >
-          Qiya
+          Pitched
         </button>
         <button
           type="button"
           class="roof-opt"
           :class="{ on: !effectivePitched }"
           :disabled="loading"
-          title="Tekis tom: butun tomga panel qo'yiladi"
+          title="Flat roof: panels over the whole roof"
           @click="setRoofType('flat')"
         >
-          Tekis
+          Flat
         </button>
       </span>
       <button
@@ -465,10 +465,10 @@ onMounted(bootstrap)
         :disabled="loading"
         @click="drawMode = !drawMode"
       >
-        {{ drawMode ? 'Chizilmoqda — tom ustida torting' : 'Taqiqlangan zona chizish' }}
+        {{ drawMode ? 'Drawing — drag over the roof' : 'Draw exclusion zone' }}
       </button>
       <span v-if="drawMode" class="text-xs text-slate-500">
-        Panel qo'yilmasin degan joyni sichqoncha bilan tortib belgilang.
+        Drag with the mouse to mark where panels should not go.
       </span>
       <button
         v-if="userBoxes.length"
@@ -477,7 +477,7 @@ onMounted(bootstrap)
         :disabled="loading"
         @click="onRefine"
       >
-        {{ loading ? 'Joylanmoqda…' : `Panellarni joylash (${userBoxes.length} zona)` }}
+        {{ loading ? 'Placing…' : `Place panels (${userBoxes.length} zones)` }}
       </button>
       <button
         v-if="userBoxes.length"
@@ -486,20 +486,20 @@ onMounted(bootstrap)
         :disabled="loading"
         @click="clearBoxes"
       >
-        Zonalarni tozalash
+        Clear zones
       </button>
     </div>
 
     <div v-if="!(loading && !result)" class="mx-4 mt-3 flex flex-wrap items-center gap-2 md:mx-6">
-      <span class="layers-label">Qatlamlar:</span>
+      <span class="layers-label">Layers:</span>
       <button type="button" class="chip chip-green" :class="{ off: !layers.roof }" @click="layers.roof = !layers.roof">
-        Tom{{ result ? ` (${roofCount})` : '' }}
+        Roof{{ result ? ` (${roofCount})` : '' }}
       </button>
       <button type="button" class="chip chip-red" :class="{ off: !layers.obstacles }" @click="layers.obstacles = !layers.obstacles">
-        To'siqlar{{ result ? ` (${obstacleCount})` : '' }}
+        Obstacles{{ result ? ` (${obstacleCount})` : '' }}
       </button>
       <button type="button" class="chip chip-blue" :class="{ off: !layers.panels }" @click="layers.panels = !layers.panels">
-        Panellar{{ result ? ` (${panelCount})` : '' }}
+        Panels{{ result ? ` (${panelCount})` : '' }}
       </button>
     </div>
 
@@ -517,10 +517,10 @@ onMounted(bootstrap)
           @add-box="onAddBox"
         />
         <div v-if="result" class="telemetry">
-          <span>Panellar: <b>{{ panelCount }}</b></span>
-          <span>Masshtab: <b>{{ result.meters_per_pixel ? result.meters_per_pixel.toFixed(3) + ' m/px' : '—' }}</b></span>
-          <span>AI modeli: <b>{{ result.provider?.segmentation || '—' }}</b></span>
-          <span>Holat: <b class="text-emerald-600">Tayyor</b></span>
+          <span>Panels: <b>{{ panelCount }}</b></span>
+          <span>Scale: <b>{{ result.meters_per_pixel ? result.meters_per_pixel.toFixed(3) + ' m/px' : '—' }}</b></span>
+          <span>AI model: <b>{{ result.provider?.segmentation || '—' }}</b></span>
+          <span>Status: <b class="text-emerald-600">Ready</b></span>
         </div>
       </div>
       <AnalyticsPanel

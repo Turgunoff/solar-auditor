@@ -77,7 +77,7 @@ function scrollWaitlist() {
         <input v-model="email" type="email" required placeholder="you@company.com" />
         <button type="submit" class="btn">Join waitlist</button>
       </form>
-      <p v-else class="thanks">You’re on the list. We’ll email when Pro opens.</p>
+      <p v-else class="thanks">You're on the list. We'll email when Pro opens.</p>
     </section>
   </div>
 </template>

@@ -93,7 +93,7 @@ function draw() {
   if (!imageObj.value) {
     ctx.fillStyle = '#64748b'
     ctx.font = '14px sans-serif'
-    ctx.fillText('Boshlash uchun: tayyor tom tanlang, rasm yuklang yoki xaritadan belgilang', 24, 40)
+    ctx.fillText('To get started: pick a preset roof, upload an image, or mark it on the map', 24, 40)
     return
   }
 
@@ -109,7 +109,7 @@ function draw() {
     ctx.fillRect(16, 16, 280, 36)
     ctx.fillStyle = '#67e8f9'
     ctx.font = '13px sans-serif'
-    ctx.fillText('Oldindan ko‘rish — AI Auditni boshlashni bosing', 28, 40)
+    ctx.fillText('Preview — click Run AI Audit to start', 28, 40)
     return
   }
 
@@ -303,16 +303,16 @@ onUnmounted(() => {
       @mousemove="onMove"
     />
     <div class="pointer-events-none absolute bottom-3 left-3 flex gap-2 text-[11px] font-semibold">
-      <span class="rounded bg-white/85 px-2 py-1 text-emerald-700">Tom</span>
-      <span class="rounded bg-white/85 px-2 py-1 text-rose-600">To'siqlar</span>
-      <span class="rounded bg-white/85 px-2 py-1 text-sky-700">Panellar</span>
-      <span class="rounded bg-white/85 px-2 py-1 text-slate-500">G'ildirak — masshtab · tortish — siljitish</span>
+      <span class="rounded bg-white/85 px-2 py-1 text-emerald-700">Roof</span>
+      <span class="rounded bg-white/85 px-2 py-1 text-rose-600">Obstacles</span>
+      <span class="rounded bg-white/85 px-2 py-1 text-sky-700">Panels</span>
+      <span class="rounded bg-white/85 px-2 py-1 text-slate-500">Wheel — zoom · drag — pan</span>
     </div>
     <div v-if="imageObj" class="absolute bottom-3 right-3 flex items-center gap-1 text-[11px] font-bold">
-      <button type="button" class="zoom-btn" title="Kichraytirish" @click="zoomBy(0.8)">−</button>
+      <button type="button" class="zoom-btn" title="Zoom out" @click="zoomBy(0.8)">−</button>
       <span class="rounded bg-white/85 px-2 py-1 text-slate-600">{{ Math.round(scale * 100) }}%</span>
-      <button type="button" class="zoom-btn" title="Kattalashtirish" @click="zoomBy(1.25)">+</button>
-      <button type="button" class="zoom-btn zoom-fit" title="Ekranga sig'dirish" @click="fitImage(); draw()">Sig'dirish</button>
+      <button type="button" class="zoom-btn" title="Zoom in" @click="zoomBy(1.25)">+</button>
+      <button type="button" class="zoom-btn zoom-fit" title="Fit to screen" @click="fitImage(); draw()">Fit</button>
     </div>
   </div>
 </template>
