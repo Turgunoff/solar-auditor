@@ -9,7 +9,7 @@ Full technical specification: [`SPEC.html`](./SPEC.html)
 ### Backend (FastAPI · port 8000)
 
 ```bash
-cd /Users/eldor/Projects/solar-auditor
+cd solar-auditor   # or your clone path
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r backend/requirements.txt
